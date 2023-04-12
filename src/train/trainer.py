@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.nn import MSELoss
 from torch.optim import SGD, Adam
 
+from torch.utils.tensorboard import SummaryWriter ###
 
 class RMSELoss(nn.Module):
     def __init__(self):
@@ -30,6 +31,8 @@ def train(args, model, dataloader, logger, setting):
         optimizer = Adam(model.parameters(), lr=args.lr)
     else:
         pass
+    
+    writer = SummaryWriter(log_dir=os.getcwd() + f'/log/{setting.save_time}_{args.model}', filename_suffix='tensorboard_logs') ###
 
     for epoch in tqdm.tqdm(range(args.epochs)):
         model.train()
@@ -53,11 +56,16 @@ def train(args, model, dataloader, logger, setting):
         valid_loss = valid(args, model, dataloader, loss_fn)
         print(f'Epoch: {epoch+1}, Train_loss: {total_loss/batch:.3f}, valid_loss: {valid_loss:.3f}')
         logger.log(epoch=epoch+1, train_loss=total_loss/batch, valid_loss=valid_loss)
+        writer.add_scalar("Loss/train", total_loss/batch, epoch+1) ###
+        writer.add_scalar("Loss/valid", valid_loss, epoch+1) ###
+        
         if minimum_loss > valid_loss:
             minimum_loss = valid_loss
             os.makedirs(args.saved_model_path, exist_ok=True)
             torch.save(model.state_dict(), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
     logger.close()
+    writer.flush() ###
+    writer.close() ###
     return model
 
 

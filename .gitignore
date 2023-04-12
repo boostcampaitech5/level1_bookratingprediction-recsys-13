@@ -387,3 +387,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# train log data
+saved_models/
+log/
+submit/*.csv

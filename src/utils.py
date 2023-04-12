@@ -7,6 +7,8 @@ import torch.nn as nn
 import logging
 import json
 from .models import *
+from lightgbm import LGBMRegressor
+from catboost import CatBoostRegressor
 
 def rmse(real: list, predict: list) -> float:
     '''
@@ -38,6 +40,12 @@ def models_load(args, data):
         model = FactorizationMachineModel(args, data).to(args.device)
     elif args.model=='FFM':
         model = FieldAwareFactorizationMachineModel(args, data).to(args.device)
+    elif args.model=='catboost':
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = CatBoostRegressor(iterations=args.epochs, random_state=args.seed, eval_metric=args.loss_fn)
+    elif args.model=='lgbm':
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = LGBMRegressor(n_estimators=args.epochs, random_state=args.seed)
     elif args.model=='NCF':
         model = NeuralCollaborativeFiltering(args, data).to(args.device)
     elif args.model=='WDN':
@@ -49,7 +57,7 @@ def models_load(args, data):
     elif args.model=='DeepCoNN':
         model = DeepCoNN(args, data).to(args.device)
     else:
-        raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
+        raise ValueError('MODEL is not exist : select model in [FM,FFM,catboost,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
     return model
 
 
@@ -104,7 +112,8 @@ class Setting:
         filename : submit file을 저장할 경로를 반환합니다.
         이 때, 파일명은 submit/날짜_시간_모델명.csv 입니다.
         '''
-        filename = f'./submit/{self.save_time}_{args.model}.csv'
+        path = self.make_dir("./submit/")
+        filename = f'{path}{self.save_time}_{args.model}.csv'
         return filename
 
     def make_dir(self,path):

@@ -4,7 +4,9 @@ import torch
 import torch.nn as nn
 from torch.nn import MSELoss
 from torch.optim import SGD, Adam
+import pickle
 
+from torch.utils.tensorboard import SummaryWriter ###
 
 class RMSELoss(nn.Module):
     def __init__(self):
@@ -30,6 +32,8 @@ def train(args, model, dataloader, logger, setting):
         optimizer = Adam(model.parameters(), lr=args.lr)
     else:
         pass
+    
+    writer = SummaryWriter(log_dir=os.getcwd() + f'/log/{setting.save_time}_{args.model}', filename_suffix='tensorboard_logs') ###
 
     for epoch in tqdm.tqdm(range(args.epochs)):
         model.train()
@@ -53,10 +57,32 @@ def train(args, model, dataloader, logger, setting):
         valid_loss = valid(args, model, dataloader, loss_fn)
         print(f'Epoch: {epoch+1}, Train_loss: {total_loss/batch:.3f}, valid_loss: {valid_loss:.3f}')
         logger.log(epoch=epoch+1, train_loss=total_loss/batch, valid_loss=valid_loss)
+        writer.add_scalar("Loss/train", total_loss/batch, epoch+1) ###
+        writer.add_scalar("Loss/valid", valid_loss, epoch+1) ###
+        
         if minimum_loss > valid_loss:
             minimum_loss = valid_loss
             os.makedirs(args.saved_model_path, exist_ok=True)
             torch.save(model.state_dict(), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
+    logger.close()
+    writer.flush() ###
+    writer.close() ###
+    return model
+
+# data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+def gbdt_train(args, model, data, logger, setting):
+
+    evals = [(data['X_valid'],data['y_valid'])]
+    if args.model == 'catboost':
+        cat_features = ['category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
+        model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+    elif args.model == 'lgbm':
+        model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+    os.makedirs(args.saved_model_path, exist_ok=True)
+    with open(f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pkl', 'wb') as f:
+        pickle.dump(model, f)
+    # torch.save(torch.jit.script(model), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
+    # logger.log(model.get_all_params())
     logger.close()
     return model
 
@@ -98,4 +124,16 @@ def test(args, model, dataloader, setting):
             x = data[0].to(args.device)
         y_hat = model(x)
         predicts.extend(y_hat.tolist())
+    return predicts
+
+def gbdt_test(args, model, data, setting):
+    # predicts = list()
+    if args.use_best_model == True:
+        with open(f'./saved_models/{setting.save_time}_{args.model}_model.pkl', 'rb') as f:
+            model = pickle.load(f)
+    else:
+        pass
+
+    predicts = model.predict(data['test'])
+                             
     return predicts

@@ -6,7 +6,7 @@ from src.data import context_data_load, context_data_split, context_data_loader
 from src.data import dl_data_load, dl_data_split, dl_data_loader
 from src.data import image_data_load, image_data_split, image_data_loader
 from src.data import text_data_load, text_data_split, text_data_loader
-from src.train import train, test
+from src.train import train, test, gbdt_train, gbdt_test
 
 
 def main(args):
@@ -15,7 +15,7 @@ def main(args):
 
     ######################## DATA LOAD
     print(f'--------------- {args.model} Load Data ---------------')
-    if args.model in ('FM', 'FFM'):
+    if args.model in ('FM', 'FFM', 'catboost', 'lgbm'):
         data = context_data_load(args)
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_load(args)
@@ -34,6 +34,9 @@ def main(args):
     if args.model in ('FM', 'FFM'):
         data = context_data_split(args, data)
         data = context_data_loader(args, data)
+        
+    elif args.model in ('catboost', 'lgbm'):
+        data = context_data_split(args, data)
 
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_split(args, data)
@@ -66,18 +69,24 @@ def main(args):
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')
-    model = train(args, model, data, logger, setting)
+    if args.model in ('catboost', 'lgbm'):
+        model = gbdt_train(args, model, data, logger, setting)
+    else:
+        model = train(args, model, data, logger, setting)
 
 
     ######################## INFERENCE
     print(f'--------------- {args.model} PREDICT ---------------')
-    predicts = test(args, model, data, setting)
+    if args.model in ('catboost', 'lgbm'):
+        predicts = gbdt_test(args, model, data, setting)
+    else:
+        predicts = test(args, model, data, setting)
 
 
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
-    if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
+    if args.model in ('FM', 'FFM', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
         submission['rating'] = predicts
     else:
         pass
@@ -95,9 +104,9 @@ if __name__ == "__main__":
 
 
     ############### BASIC OPTION
-    arg('--data_path', type=str, default='data/', help='Data path를 설정할 수 있습니다.')
+    arg('--data_path', type=str, default='/opt/ml/data/', help='Data path를 설정할 수 있습니다.')
     arg('--saved_model_path', type=str, default='./saved_models', help='Saved Model path를 설정할 수 있습니다.')
-    arg('--model', type=str, choices=['FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
+    arg('--model', type=str, choices=['FM', 'FFM', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
     arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.')

@@ -394,3 +394,6 @@ submit/*.csv
 
 # DeepCoNN data 폴더 생성되는 문제
 data/
+
+# catboost
+catboost_info/

@@ -61,7 +61,7 @@ def models_load(args, data):
     elif args.model=='DeepCoNN':
         model = DeepCoNN(args, data).to(args.device)
     else:
-        raise ValueError('MODEL is not exist : select model in [FM,FFM,catboost,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
+        raise ValueError('MODEL is not exist : select model in [FM,FFM,xgb,lgbm,catboost,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
     return model
 
 

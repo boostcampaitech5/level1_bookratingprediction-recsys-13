@@ -17,6 +17,8 @@ from sklearn.metrics import mean_squared_error
 import warnings
 warnings.filterwarnings('ignore')
 
+from catboost import CatBoostRegressor
+
 from torch.utils.tensorboard import SummaryWriter ###
 
 class RMSELoss(nn.Module):
@@ -140,18 +142,18 @@ def select_feature(args, model, data):
     feature_list = []
     experiment_result = pd.DataFrame({'features':['0']*len(features), 'len_features':['0']*len(features), 'rmse':np.zeros(len(features))})
     features_copy = features.copy()
-    model_copy = model
+    model_copy = CatBoostRegressor(iterations=100, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
 
     for i in tqdm.tqdm(range(len(features)), desc='selecting features...'):
         evals = [(X_valid[features_copy], y_valid)]
         if args.model == 'catboost':
             cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
-            model.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
+            model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
         elif args.model == 'lgbm':
-            model.fit(X_train[features_copy], y_train, eval_metric=args.loss_fn, eval_set=evals, verbose=0)
+            model_copy.fit(X_train[features_copy], y_train, eval_metric=args.loss_fn, eval_set=evals, verbose=0)
     
-        result = permutation_importance(model, X_train[features_copy], y_train, 
+        result = permutation_importance(model_copy, X_train[features_copy], y_train, 
                                         scoring = make_scorer(mean_squared_error ,greater_is_better=False),
                                         n_repeats=10,
                                         random_state=args.seed)
@@ -165,7 +167,7 @@ def select_feature(args, model, data):
         
         feature_list.append(feature)
         
-        temp_model = model_copy
+        temp_model = model
         temp_evals = [(X_valid[feature_list], y_valid)]
         
         if args.model == 'catboost':
@@ -187,6 +189,7 @@ def select_feature(args, model, data):
     print(experiment_result)
     
     features_idx = input('SELECT Feature index : ')
+    features_idx = float(features_idx)
     
     features = []
     for x in experiment_result.loc[int(features_idx), 'features'].split("'"):

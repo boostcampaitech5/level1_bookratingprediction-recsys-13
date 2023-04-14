@@ -5,11 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
 from .EDAs import mission_1_EDA, jisu_EDA_1
-from .EDAs import mission_1_EDA
-from .EDAs import age_0413_ver1
-from .EDAs import age_0413_ver2
-from .EDAs import age_0413_ver4
-
+from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -146,6 +142,8 @@ def context_data_load(args):
         idx, context_train, context_test = age_0413_ver2(users, books, train, test)
     elif args.eda == 'age_0413_ver4':
         idx, context_train, context_test = age_0413_ver4(users, books, train, test)
+    elif args.eda == 'category_0414_ver1':
+        idx, context_train, context_test = category_0414_ver1(users, books, train, test)
 
     if args.eda == 'jisu':
         field_dims = np.array([len(user2idx), len(isbn2idx),

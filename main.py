@@ -152,7 +152,7 @@ if __name__ == "__main__":
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
 
     ############### EDA Selection
-    arg('--eda', type=str, default='default', choices=['default', 'mission1'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
+    arg('--eda', type=str, default='default', choices=['default', 'mission1', 'jisu'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
 
     args = parser.parse_args()

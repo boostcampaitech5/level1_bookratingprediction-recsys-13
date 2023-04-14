@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
-from .EDAs import mission_1_EDA
+from .EDAs import mission_1_EDA, jisu_EDA_1
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -133,10 +133,17 @@ def context_data_load(args):
         idx, context_train, context_test = process_context_data(users, books, train, test)
     elif args.eda == 'mission1':
         idx, context_train, context_test = mission_1_EDA(users, books, train, test)
+    elif args.eda == 'jisu':
+        idx, context_train, context_test = jisu_EDA_1(users, books, train, test)
 
-    field_dims = np.array([len(user2idx), len(isbn2idx),
-                            6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    if args.eda == 'jisu':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    else:
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {
             'train':context_train,

@@ -74,7 +74,10 @@ def gbdt_train(args, model, data, logger, setting):
 
     evals = [(data['X_valid'],data['y_valid'])]
     if args.model == 'catboost':
-        cat_features = ['category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
+        if args.eda == 'jisu':
+            cat_features = ['category', 'publisher', 'language', 'book_author','age','location_city','location_country']
+        else:
+            cat_features = ['category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
         model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
     elif args.model == 'lgbm':
         model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)

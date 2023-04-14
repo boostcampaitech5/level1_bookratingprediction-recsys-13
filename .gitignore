@@ -393,7 +393,7 @@ log/
 submit/*.csv
 
 # DeepCoNN data 폴더 생성되는 문제
-data/
+data/text_vector
 
 # catboost
 catboost_info/

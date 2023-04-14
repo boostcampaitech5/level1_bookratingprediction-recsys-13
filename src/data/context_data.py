@@ -21,7 +21,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def process_context_data(users, books, ratings1, ratings2, eda):
+def process_context_data(users, books, ratings1, ratings2): # default EDA
     """
     Parameters
     ----------
@@ -35,13 +35,11 @@ def process_context_data(users, books, ratings1, ratings2, eda):
         test 데이터의 rating
     ----------
     """
-    if eda == 'default':
-        users['location_city'] = users['location'].apply(lambda x: x.split(',')[0])
-        users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
-        users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
-        users = users.drop(['location'], axis=1)
-    elif eda == 'mission1':
-        users, books = mission_1_EDA(users, books)  # mission 1 EDA
+    
+    users['location_city'] = users['location'].apply(lambda x: x.split(',')[0])
+    users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
+    users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
+    users = users.drop(['location'], axis=1)
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
@@ -131,7 +129,11 @@ def context_data_load(args):
     test['isbn'] = test['isbn'].map(isbn2idx)
     books['isbn'] = books['isbn'].map(isbn2idx)
 
-    idx, context_train, context_test = process_context_data(users, books, train, test, args.eda)
+    if args.eda == 'default':
+        idx, context_train, context_test = process_context_data(users, books, train, test)
+    elif args.eda == 'mission1':
+        idx, context_train, context_test = mission_1_EDA(users, books, train, test)
+
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                             len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)

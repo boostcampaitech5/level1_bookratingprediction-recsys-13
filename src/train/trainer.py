@@ -98,9 +98,9 @@ def gbdt_train(args, model, data, logger, setting):
     evals = [(data['X_valid'],data['y_valid'])]
     if args.model == 'catboost':
         if args.eda == 'jisu':
-            cat_features = ['user_id', 'category', 'publisher', 'language', 'book_author','age','location_city','location_country']
+            cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_country']
         else:
-            cat_features = ['user_id', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
+            cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             
         cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
         for i in  range(args.k_fold):
@@ -143,7 +143,7 @@ def select_feature(args, model, data):
     for i in tqdm.tqdm(range(len(features)), desc='selecting features...'):
         evals = [(X_valid[features_copy], y_valid)]
         if args.model == 'catboost':
-            cat_features = ['user_id', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
+            cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
             model.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
         elif args.model == 'lgbm':
@@ -167,7 +167,7 @@ def select_feature(args, model, data):
         temp_evals = [(X_valid[feature_list], y_valid)]
         
         if args.model == 'catboost':
-            temp_cat_features = ['user_id', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
+            temp_cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             temp_cat_features = list(set(temp_cat_features).intersection(list(X_train[feature_list].columns)))
             temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=300, cat_features=temp_cat_features, verbose=0)
         elif args.model == 'lgbm':

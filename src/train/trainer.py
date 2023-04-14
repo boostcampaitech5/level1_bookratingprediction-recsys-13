@@ -192,8 +192,16 @@ def select_feature(args, model, data):
             features.append(x)
 
     print(f'{features} selected!')
-        
-    return features
+
+    data['X_train'] = data['X_train'][features]
+    data['X_valid'] = data['X_valid'][features]
+    data['test'] = data['test'][features]
+    tr = pd.concat([data['X_train'], pd.DataFrame({'rating':data['y_train']})], axis=1)
+    val = pd.concat([data['X_valid'], pd.DataFrame({'rating':data['y_valid']})], axis=1)
+    data['train'] = pd.concat([tr, val])
+    del tr, val
+    
+    return data
 
 def valid(args, model, dataloader, loss_fn):
     model.eval()

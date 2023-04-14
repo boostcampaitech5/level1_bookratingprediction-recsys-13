@@ -84,22 +84,25 @@ def stratified_kfold(args, data, n):
         
     return data
 
-# data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
 def gbdt_train(args, model, data, logger, setting):
 
     evals = [(data['X_valid'],data['y_valid'])]
     if args.model == 'catboost':
         cat_features = ['category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
-        # model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
         for i in  range(args.k_fold):
             data = stratified_kfold(args, data, i)
             model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
             save_model_pkl(args, model, setting, i)
-            # predicts_list.append(model.predict(data['test']))
     elif args.model == 'lgbm':
-        model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+        for i in  range(args.k_fold):
+            data = stratified_kfold(args, data, i)
+            model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+            save_model_pkl(args, model, setting, i)
     elif args.model == 'xgb':
-        model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+        for i in  range(args.k_fold):
+            data = stratified_kfold(args, data, i)
+            model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+            save_model_pkl(args, model, setting, i)
     os.makedirs(args.saved_model_path, exist_ok=True)
     
     # torch.save(torch.jit.script(model), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
@@ -161,7 +164,6 @@ def gbdt_test(args, model, data, setting):
             pass
         predicts_list.append(model.predict(data['test']))
 
-    # predicts = model.predict(data['test'])
     predicts = np.mean(predicts_list, axis=0)
                              
     return predicts

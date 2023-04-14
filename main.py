@@ -1,13 +1,16 @@
 import time
 import argparse
 import pandas as pd
+
+import warnings
+warnings.filterwarnings('ignore')
+
 from src.utils import Logger, Setting, models_load
 from src.data import context_data_load, context_data_split, context_data_loader
 from src.data import dl_data_load, dl_data_split, dl_data_loader
 from src.data import image_data_load, image_data_split, image_data_loader
 from src.data import text_data_load, text_data_split, text_data_loader
-from src.train import train, test, gbdt_train, gbdt_test
-
+from src.train import train, test, gbdt_train, gbdt_test, select_feature
 
 def main(args):
     Setting.seed_everything(args.seed)
@@ -66,6 +69,13 @@ def main(args):
     print(f'--------------- INIT {args.model} ---------------')
     model = models_load(args,data)
 
+    ######################## Select Feature
+    if (args.model in ('catboost', 'lgbm')) & ((args.FS)):
+        print(f'--------------- SELECT FEATURES ---------------')
+        features = select_feature(args, model, data)
+        data['X_train'] = data['X_train'][features]
+        data['X_valid'] = data['X_valid'][features]
+        data['test'] = data['test'][features]
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')
@@ -154,6 +164,8 @@ if __name__ == "__main__":
     ############### EDA Selection
     arg('--eda', type=str, default='default', choices=['default', 'mission1'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
+    ############### Feature Selection
+    arg('--FS', type=bool, default=False, help='변수 선택 단계를 거칠 것인지를 결정합니다.')
 
     args = parser.parse_args()
     main(args)

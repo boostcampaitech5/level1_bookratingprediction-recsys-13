@@ -9,6 +9,7 @@ import json
 from .models import *
 from lightgbm import LGBMRegressor
 from catboost import CatBoostRegressor
+from xgboost import XGBRegressor
 
 def rmse(real: list, predict: list) -> float:
     '''
@@ -42,10 +43,13 @@ def models_load(args, data):
         model = FieldAwareFactorizationMachineModel(args, data).to(args.device)
     elif args.model=='catboost':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = CatBoostRegressor(iterations=args.epochs, random_state=args.seed, eval_metric=args.loss_fn)
+        model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn)
     elif args.model=='lgbm':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = LGBMRegressor(n_estimators=args.epochs, random_state=args.seed)
+        model = LGBMRegressor(n_estimators=args.epochs, learning_rate=args.lr, random_state=args.seed)
+    elif args.model=='xgb':
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = XGBRegressor(n_estimators=args.epochs, learning_rate=args.lr, random_state=args.seed)
     elif args.model=='NCF':
         model = NeuralCollaborativeFiltering(args, data).to(args.device)
     elif args.model=='WDN':
@@ -57,7 +61,7 @@ def models_load(args, data):
     elif args.model=='DeepCoNN':
         model = DeepCoNN(args, data).to(args.device)
     else:
-        raise ValueError('MODEL is not exist : select model in [FM,FFM,catboost,lgbm,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
+        raise ValueError('MODEL is not exist : select model in [FM,FFM,catboost,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
     return model
 
 

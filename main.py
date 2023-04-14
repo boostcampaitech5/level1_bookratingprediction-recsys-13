@@ -18,7 +18,7 @@ def main(args):
 
     ######################## DATA LOAD
     print(f'--------------- {args.model} Load Data ---------------')
-    if args.model in ('FM', 'FFM', 'catboost', 'lgbm'):
+    if args.model in ('FM', 'FFM', 'catboost', 'lgbm', 'xgb'):
         data = context_data_load(args)
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_load(args)
@@ -38,7 +38,7 @@ def main(args):
         data = context_data_split(args, data)
         data = context_data_loader(args, data)
         
-    elif args.model in ('catboost', 'lgbm'):
+    elif args.model in ('catboost', 'lgbm', 'xgb'):
         data = context_data_split(args, data)
 
     elif args.model in ('NCF', 'WDN', 'DCN'):
@@ -79,7 +79,7 @@ def main(args):
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')
-    if args.model in ('catboost', 'lgbm'):
+    if args.model in ('catboost', 'lgbm', 'xgb'):
         model = gbdt_train(args, model, data, logger, setting)
     else:
         model = train(args, model, data, logger, setting)
@@ -87,7 +87,7 @@ def main(args):
 
     ######################## INFERENCE
     print(f'--------------- {args.model} PREDICT ---------------')
-    if args.model in ('catboost', 'lgbm'):
+    if args.model in ('catboost', 'lgbm', 'xgb'):
         predicts = gbdt_test(args, model, data, setting)
     else:
         predicts = test(args, model, data, setting)
@@ -96,7 +96,7 @@ def main(args):
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
-    if args.model in ('FM', 'FFM', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
+    if args.model in ('FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
         submission['rating'] = predicts
     else:
         pass
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     ############### BASIC OPTION
     arg('--data_path', type=str, default='/opt/ml/data/', help='Data path를 설정할 수 있습니다.')
     arg('--saved_model_path', type=str, default='./saved_models', help='Saved Model path를 설정할 수 있습니다.')
-    arg('--model', type=str, choices=['FM', 'FFM', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
+    arg('--model', type=str, choices=['FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
     arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.')
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     arg('--batch_size', type=int, default=1024, help='Batch size를 조정할 수 있습니다.')
     arg('--epochs', type=int, default=10, help='Epoch 수를 조정할 수 있습니다.')
     arg('--lr', type=float, default=1e-3, help='Learning Rate를 조정할 수 있습니다.')
-    arg('--loss_fn', type=str, default='RMSE', choices=['MSE', 'RMSE'], help='손실 함수를 변경할 수 있습니다.')
+    arg('--loss_fn', type=str, default='RMSE', choices=['MSE', 'RMSE', 'rmse'], help='손실 함수를 변경할 수 있습니다.')
     arg('--optimizer', type=str, default='ADAM', choices=['SGD', 'ADAM'], help='최적화 함수를 변경할 수 있습니다.')
     arg('--weight_decay', type=float, default=1e-6, help='Adam optimizer에서 정규화에 사용하는 값을 조정할 수 있습니다.')
 
@@ -164,8 +164,13 @@ if __name__ == "__main__":
     ############### EDA Selection
     arg('--eda', type=str, default='default', choices=['default', 'mission1'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
+    ############### K-FOLD
+    arg('--k_fold', type=int, default=1, help='K-FOLD의 K값을 조정할 수 있습니다.')
+
     ############### Feature Selection
     arg('--FS', type=bool, default=False, help='변수 선택 단계를 거칠 것인지를 결정합니다.')
+
+
 
     args = parser.parse_args()
     main(args)

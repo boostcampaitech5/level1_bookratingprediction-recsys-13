@@ -29,7 +29,7 @@ def age_map(x: int) -> int:
 def jisu_EDA_1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
     print('-'*20, 'jisu1 EDA Start', '-'*20)
     # user preprocessing
-    users['location_city'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '') # 특수문자 제거
+    users['location'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '') # 특수문자 제거
     users['location_city'] = users['location'].map(lambda x : split_map(x)[0].strip()) # split : city, state, country
     users['location_state'] = users['location'].apply(lambda x : split_map(x)[1].strip())
     users['location_country'] = users['location'].apply(lambda x : split_map(x)[2].strip())

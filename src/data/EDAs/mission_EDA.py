@@ -21,7 +21,7 @@ def age_map(x: int) -> int:
 def mission_1_EDA(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
     print('-'*20, 'Mission1 EDA Start', '-'*20)
     # user preprocessing
-    users['location_city'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '') # 특수문자 제거
+    users['location'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '') # 특수문자 제거
     users['location_city'] = users['location'].apply(lambda x: x.split(',')[0])
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])

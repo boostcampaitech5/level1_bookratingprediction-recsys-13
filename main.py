@@ -161,7 +161,7 @@ if __name__ == "__main__":
     ############### EDA Selection
     arg('--eda', type=str, default='default', choices=['default', 'mission1', 'jisu', 
                                                        'age_0413_ver1', 'age_0413_ver2', 'age_0413_ver4', 'category_0414_ver1', 
-                                                       'dohyun_0415_ver1'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
+                                                       'dohyun_0415_ver1', 'dohyun_0415_ver4'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
     ############### K-FOLD
     arg('--k_fold', type=int, default=1, help='K-FOLD의 K값을 조정할 수 있습니다.')

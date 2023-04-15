@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
 from .EDAs import mission_1_EDA, jisu_EDA_1
 from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
-from .EDAs import dohyun_0415_ver1
+from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -147,6 +147,8 @@ def context_data_load(args):
         idx, context_train, context_test = category_0414_ver1(users, books, train, test)
     elif args.eda == 'dohyun_0415_ver1':
         idx, context_train, context_test = dohyun_0415_ver1(users, books, train, test)
+    elif args.eda == 'dohyun_0415_ver4':
+        idx, context_train, context_test = dohyun_0415_ver4(users, books, train, test)
 
     if args.eda == 'jisu':
         field_dims = np.array([len(user2idx), len(isbn2idx),
@@ -157,7 +159,12 @@ def context_data_load(args):
         field_dims = np.array([len(user2idx), len(isbn2idx),
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                                 len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-    
+
+    elif args.eda == 'dohyun_0415_ver4':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
     else:
         field_dims = np.array([len(user2idx), len(isbn2idx),
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),

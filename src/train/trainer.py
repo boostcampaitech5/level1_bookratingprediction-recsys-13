@@ -105,6 +105,8 @@ def gbdt_train(args, model, data, logger, setting):
             cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
         elif args.eda == 'dohyun_0415_ver1':
             cat_features = ['user_id', 'isbn', 'category_high', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
+        elif args.eda == 'dohyun_0415_ver4':
+            cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
         else:
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             

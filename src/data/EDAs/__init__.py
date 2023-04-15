@@ -6,3 +6,4 @@ from .age_0413_ver2 import age_0413_ver2
 from .age_0413_ver4 import age_0413_ver4
 from .category_0414_ver1 import category_0414_ver1
 from .dohyun_0415_ver1 import dohyun_0415_ver1
+from .dohyun_0415_ver4 import dohyun_0415_ver4

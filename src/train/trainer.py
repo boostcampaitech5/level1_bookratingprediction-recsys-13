@@ -102,7 +102,9 @@ def gbdt_train(args, model, data, logger, setting):
         if args.eda == 'jisu':
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_country']
         elif args.eda == 'category_0414_ver1':
-            cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_country']
+            cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
+        elif args.eda == '0415_dohyun_ver1':
+            cat_features = ['user_id', 'isbn', 'category_high', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
         else:
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             
@@ -161,7 +163,7 @@ def select_feature(args, model, data):
         sorted_result = result.importances_mean.argsort()
         importances = pd.DataFrame(result.importances_mean[sorted_result], index=X_train[features_copy].columns[sorted_result]).sort_values(0, ascending=False)   
         importances = importances.rename(columns={0:'importances'})
-
+        
         feature = list(importances.index)[0]
         features_copy.remove(feature)
         

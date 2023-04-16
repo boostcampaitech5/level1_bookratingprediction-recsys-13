@@ -97,7 +97,6 @@ def stratified_kfold(args, data, n):
 
 def gbdt_train(args, model, data, logger, setting):
 
-    evals = [(data['X_valid'],data['y_valid'])]
     if args.model == 'catboost':
         if args.eda == 'jisu':
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_country']
@@ -111,22 +110,35 @@ def gbdt_train(args, model, data, logger, setting):
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             
         cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
-        for i in  range(args.k_fold):
-            data = stratified_kfold(args, data, i)
+        if args.k_fold == 1:
+            evals = [(data['X_valid'],data['y_valid'])]
             model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
-            save_model_pkl(args, model, setting, i)
-
-        model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+            save_model_pkl(args, model, setting, 0)
+        else:
+            for i in  range(args.k_fold):
+                evals = [(data['X_valid'][i],data['y_valid'][i])]
+                model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+                save_model_pkl(args, model, setting, i)
     elif args.model == 'lgbm':
-        for i in  range(args.k_fold):
-            data = stratified_kfold(args, data, i)
+        if args.k_fold == 1:
+            evals = [(data['X_valid'],data['y_valid'])]
             model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
-            save_model_pkl(args, model, setting, i)
+            save_model_pkl(args, model, setting, 0)
+        else:
+            for i in  range(args.k_fold):
+                evals = [(data['X_valid'][i],data['y_valid'][i])]
+                model.fit(data['X_train'][i], data['y_train'][i], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+                save_model_pkl(args, model, setting, i)
     elif args.model == 'xgb':
-        for i in  range(args.k_fold):
-            data = stratified_kfold(args, data, i)
+        if args.k_fold == 1:
+            evals = [(data['X_valid'],data['y_valid'])]
             model.fit(data['X_train'], data['y_train'], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
-            save_model_pkl(args, model, setting, i)
+            save_model_pkl(args, model, setting, 0)
+        else:
+            for i in  range(args.k_fold):
+                evals = [(data['X_valid'][i],data['y_valid'][i])]
+                model.fit(data['X_train'][i], data['y_train'][i], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
+                save_model_pkl(args, model, setting, i)
     os.makedirs(args.saved_model_path, exist_ok=True)
     
     # torch.save(torch.jit.script(model), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')

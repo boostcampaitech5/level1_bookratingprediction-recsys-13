@@ -43,7 +43,10 @@ def models_load(args, data):
         model = FieldAwareFactorizationMachineModel(args, data).to(args.device)
     elif args.model=='catboost':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn)
+        if torch.cuda.is_available():
+            model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
+        else:
+            model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn)
     elif args.model=='lgbm':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = LGBMRegressor(n_estimators=args.epochs, learning_rate=args.lr, random_state=args.seed)

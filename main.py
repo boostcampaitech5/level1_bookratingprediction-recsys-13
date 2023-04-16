@@ -72,10 +72,7 @@ def main(args):
     ######################## Select Feature
     if (args.model in ('catboost', 'lgbm')) & ((args.FS)):
         print(f'--------------- SELECT FEATURES ---------------')
-        features = select_feature(args, model, data)
-        data['X_train'] = data['X_train'][features]
-        data['X_valid'] = data['X_valid'][features]
-        data['test'] = data['test'][features]
+        data = select_feature(args, model, data)
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')
@@ -162,7 +159,9 @@ if __name__ == "__main__":
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
 
     ############### EDA Selection
-    arg('--eda', type=str, default='default', choices=['default', 'mission1', 'jisu'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
+    arg('--eda', type=str, default='default', choices=['default', 'mission1', 'jisu', 
+                                                       'age_0413_ver1', 'age_0413_ver2', 'age_0413_ver4', 'category_0414_ver1', 
+                                                       'dohyun_0415_ver1', 'dohyun_0415_ver4'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
     ############### K-FOLD
     arg('--k_fold', type=int, default=1, help='K-FOLD의 K값을 조정할 수 있습니다.')

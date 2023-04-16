@@ -39,7 +39,10 @@ def main(args):
         data = context_data_loader(args, data)
         
     elif args.model in ('catboost', 'lgbm', 'xgb'):
-        data = context_data_split(args, data)
+        if args.k_fold == 1:
+            data = context_data_split(data)
+        else:
+            data = stratified_kfold(k, data)
 
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_split(args, data)

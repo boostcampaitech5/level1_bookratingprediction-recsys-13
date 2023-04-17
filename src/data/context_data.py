@@ -7,6 +7,7 @@ from torch.utils.data import TensorDataset, DataLoader, Dataset
 from .EDAs import mission_1_EDA, jisu_EDA_1
 from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
 from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
+from sklearn.model_selection import StratifiedKFold
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -207,6 +208,21 @@ def context_data_split(args, data):
                                                         shuffle=True
                                                         )
     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+    return data
+
+def stratified_kfold(args, data):
+    skf = StratifiedKFold(n_splits= args.k_fold, shuffle=True, random_state=args.seed)
+    counts = 0
+    data['X_train'] = []
+    data['y_train'] = []
+    data['X_valid'] = []
+    data['y_valid'] = []
+    for train_index, valid_index in skf.split(data['train'].drop(['rating'], axis=1),data['train']['rating']):
+        data['X_train'].append(data['train'].drop(['rating'], axis=1).loc[train_index])
+        data['y_train'].append(data['train']['rating'].loc[train_index])
+        data['X_valid'].append(data['train'].drop(['rating'], axis=1).loc[valid_index])
+        data['y_valid'].append(data['train']['rating'].loc[valid_index])
+        
     return data
 
 def context_data_loader(args, data):

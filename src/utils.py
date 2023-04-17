@@ -10,6 +10,7 @@ from .models import *
 from lightgbm import LGBMRegressor
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
+from pytorch_tabnet.tab_model import TabNetRegressor
 
 def rmse(real: list, predict: list) -> float:
     '''
@@ -53,6 +54,10 @@ def models_load(args, data):
     elif args.model=='xgb':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = XGBRegressor(n_estimators=args.epochs, learning_rate=args.lr, random_state=args.seed)
+    elif args.model=='tabnet':
+        model = model = TabNetRegressor(optimizer_fn=torch.optim.Adam,
+                                        optimizer_params=dict(lr=args.lr),
+                                        device_name=args.device)
     elif args.model=='NCF':
         model = NeuralCollaborativeFiltering(args, data).to(args.device)
     elif args.model=='WDN':

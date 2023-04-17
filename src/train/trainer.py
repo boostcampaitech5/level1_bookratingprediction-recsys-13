@@ -82,18 +82,6 @@ def train(args, model, dataloader, logger, setting):
     writer.close() ###
     return model
 
-def stratified_kfold(args, data, n):
-    skf = StratifiedKFold(n_splits= 5, shuffle=True, random_state=args.seed)
-    counts = 0
-    for train_index, valid_index in skf.split(data['train'].drop(['rating'], axis=1),data['train']['rating']):
-        if counts == n:
-            data['X_train'], data['y_train'] = data['train'].drop(['rating'], axis=1).loc[train_index], data['train']['rating'].loc[train_index]
-            data['X_valid'], data['y_valid'] = data['train'].drop(['rating'], axis=1).loc[valid_index], data['train']['rating'].loc[valid_index]
-            break
-        else:
-            counts += 1
-        
-    return data
 
 def gbdt_train(args, model, data, logger, setting):
 
@@ -109,14 +97,15 @@ def gbdt_train(args, model, data, logger, setting):
         else:
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             
-        cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
         if args.k_fold == 1:
             evals = [(data['X_valid'],data['y_valid'])]
+            cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
             model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
             save_model_pkl(args, model, setting, 0)
         else:
             for i in  range(args.k_fold):
                 evals = [(data['X_valid'][i],data['y_valid'][i])]
+                cat_features = list(set(cat_features).intersection(list(data['X_train'][i].columns)))
                 model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
                 save_model_pkl(args, model, setting, i)
     elif args.model == 'lgbm':
@@ -139,7 +128,26 @@ def gbdt_train(args, model, data, logger, setting):
                 evals = [(data['X_valid'][i],data['y_valid'][i])]
                 model.fit(data['X_train'][i], data['y_train'][i], eval_metric=args.loss_fn, eval_set=evals, verbose=100)
                 save_model_pkl(args, model, setting, i)
-    os.makedirs(args.saved_model_path, exist_ok=True)
+    elif args.model == 'tabnet':
+        if args.k_fold == 1:
+            evals = [(data['X_valid'].values,data['y_valid'].values.reshape(-1, 1))]
+            model.fit(data['X_train'].values, data['y_train'].values.reshape(-1, 1), eval_set=evals,
+                            eval_metric=['rmse'],
+                            max_epochs=500,
+                            patience=20,
+                            batch_size=args.batch_size
+                        )
+            save_model_pkl(args, model, setting, 0)
+        else:
+            for i in  range(args.k_fold):
+                evals = [(data['X_valid'][i].values,data['y_valid'][i].values.reshape(-1, 1))]
+                model.fit(data['X_train'][i].values, data['y_train'][i].values.reshape(-1, 1), eval_set=evals,
+                            eval_metric=['rmse'],
+                            max_epochs=args.epochs,
+                            patience=20,
+                            batch_size=args.batch_size
+                            )
+                save_model_pkl(args, model, setting, i)
     
     # torch.save(torch.jit.script(model), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
     # logger.log(model.get_all_params())
@@ -147,6 +155,7 @@ def gbdt_train(args, model, data, logger, setting):
     return model
 
 def save_model_pkl(args, model, setting, i):
+    os.makedirs(args.saved_model_path, exist_ok=True)
     with open(f'{args.saved_model_path}/{setting.save_time}_{args.model}_model{i+1}.pkl', 'wb') as f:
         pickle.dump(model, f)
 

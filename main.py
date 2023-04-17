@@ -6,7 +6,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from src.utils import Logger, Setting, models_load
-from src.data import context_data_load, context_data_split, context_data_loader
+from src.data import context_data_load, context_data_split, context_data_loader, stratified_kfold
 from src.data import dl_data_load, dl_data_split, dl_data_loader
 from src.data import image_data_load, image_data_split, image_data_loader
 from src.data import text_data_load, text_data_split, text_data_loader
@@ -18,7 +18,7 @@ def main(args):
 
     ######################## DATA LOAD
     print(f'--------------- {args.model} Load Data ---------------')
-    if args.model in ('FM', 'FFM', 'catboost', 'lgbm', 'xgb'):
+    if args.model in ('FM', 'FFM', 'catboost', 'lgbm', 'xgb', 'tabnet'):
         data = context_data_load(args)
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_load(args)
@@ -38,11 +38,11 @@ def main(args):
         data = context_data_split(args, data)
         data = context_data_loader(args, data)
         
-    elif args.model in ('catboost', 'lgbm', 'xgb'):
+    elif args.model in ('catboost', 'lgbm', 'xgb', 'tabnet'):
         if args.k_fold == 1:
             data = context_data_split(data)
         else:
-            data = stratified_kfold(k, data)
+            data = stratified_kfold(args, data)
 
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_split(args, data)
@@ -79,7 +79,7 @@ def main(args):
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')
-    if args.model in ('catboost', 'lgbm', 'xgb'):
+    if args.model in ('catboost', 'lgbm', 'xgb', 'tabnet'):
         model = gbdt_train(args, model, data, logger, setting)
     else:
         model = train(args, model, data, logger, setting)
@@ -87,7 +87,7 @@ def main(args):
 
     ######################## INFERENCE
     print(f'--------------- {args.model} PREDICT ---------------')
-    if args.model in ('catboost', 'lgbm', 'xgb'):
+    if args.model in ('catboost', 'lgbm', 'xgb', 'tabnet'):
         predicts = gbdt_test(args, model, data, setting)
     else:
         predicts = test(args, model, data, setting)
@@ -96,7 +96,7 @@ def main(args):
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
-    if args.model in ('FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
+    if args.model in ('FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'tabnet', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
         submission['rating'] = predicts
     else:
         pass
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     ############### BASIC OPTION
     arg('--data_path', type=str, default='/opt/ml/data/', help='Data path를 설정할 수 있습니다.')
     arg('--saved_model_path', type=str, default='./saved_models', help='Saved Model path를 설정할 수 있습니다.')
-    arg('--model', type=str, choices=['FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
+    arg('--model', type=str, choices=['FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'tabnet', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
     arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.')

@@ -167,7 +167,7 @@ def save_model_pkl(args, model, setting, i):
 def select_feature(args, model, data):
     
     X_train, X_valid, y_train, y_valid = data['X_train'].copy(), data['X_valid'].copy(), data['y_train'].copy(), data['y_valid'].copy()
-    
+
     features = list(X_train.columns)
     feature_list = []
     experiment_result = pd.DataFrame({'features':['0']*len(features), 'len_features':['0']*len(features), 'rmse':np.zeros(len(features))})

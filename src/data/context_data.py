@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
 from .EDAs import mission_1_EDA, jisu_EDA_1
 from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
-from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
+from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4, dohyun_0417_ver1
 from .EDAs import rating_mean_feature
 from sklearn.model_selection import StratifiedKFold
 
@@ -25,7 +25,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def process_context_data(users, books, ratings1, ratings2): # default EDA
+def process_context_data(users, books, ratings1, ratings2, is_dl : bool = False): # default EDA
     """
     Parameters
     ----------
@@ -44,6 +44,9 @@ def process_context_data(users, books, ratings1, ratings2): # default EDA
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
@@ -108,8 +111,8 @@ def context_data_load(args):
     """
 
     ######################## DATA LOAD
-    users = pd.read_csv(args.data_path + 'users.csv')
-    books = pd.read_csv(args.data_path + 'books.csv')
+    users = pd.read_csv(args.users_data)
+    books = pd.read_csv(args.books_data)
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
@@ -151,6 +154,8 @@ def context_data_load(args):
         idx, context_train, context_test = dohyun_0415_ver1(users, books, train, test)
     elif args.eda == 'dohyun_0415_ver4':
         idx, context_train, context_test = dohyun_0415_ver4(users, books, train, test)
+    elif args.eda == 'dohyun_0417_ver1':
+        idx, context_train, context_test = dohyun_0417_ver1(users, books, train, test)
 
     if args.eda == 'jisu':
         field_dims = np.array([len(user2idx), len(isbn2idx),
@@ -166,6 +171,12 @@ def context_data_load(args):
         field_dims = np.array([len(user2idx), len(isbn2idx),
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                                 len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    elif args.eda == 'dohyun_0417_ver1':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
 
     else:
         field_dims = np.array([len(user2idx), len(isbn2idx),

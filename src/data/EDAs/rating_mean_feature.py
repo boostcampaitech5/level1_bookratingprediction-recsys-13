@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def rating_mean_feature(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
+def rating_mean_feature(users : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame, is_dl : bool = False) -> tuple:
     """
     Parameters
     ----------
@@ -15,10 +15,27 @@ def rating_mean_feature(users : pd.DataFrame, books : pd.DataFrame, ratings1 : p
         test 데이터의 rating
     ----------
     """
-    # 사용자별 평점 평균
+    # 사용자별 평점 평균 분산 미디안
 
-    # 카테고리 별 평점 평균
+    train_df_means = ratings1.groupby('user_id')['rating'].mean()
+    train_df_total_mean = ratings1['rating'].mean()
+    train_df_vars = ratings1.groupby('user_id')['rating'].var()
+    train_df_total_var = ratings1['rating'].var()
+    train_df_medians = ratings1.groupby('user_id')['rating'].median()
+    train_df_total_median = ratings1['rating'].median()
 
-    # 사용자-카테고리 별 평점 평균
+    users['rating_avg'] = users['user_id'].apply(lambda x: train_df_means[x] if x in train_df_means else train_df_total_mean)
+    users['rating_var'] = users['user_id'].apply(lambda x: train_df_vars[x] if x in train_df_vars else train_df_total_var).fillna(0)
+    users['rating_median'] = users['user_id'].apply(lambda x: train_df_medians[x] if x in train_df_medians else train_df_total_median)
 
-    return users, books, ratings1, ratings1
+    ratings1['rating_avg'] = ratings1['user_id'].apply(lambda x: train_df_means[x] if x in train_df_means else train_df_total_mean)
+    ratings1['rating_var'] = ratings1['user_id'].apply(lambda x: train_df_vars[x] if x in train_df_vars else train_df_total_var).fillna(0)
+    ratings1['rating_median'] = ratings1['user_id'].apply(lambda x: train_df_medians[x] if x in train_df_medians else train_df_total_median)
+
+    ratings2['rating_avg'] = ratings2['user_id'].apply(lambda x: train_df_means[x] if x in train_df_means else train_df_total_mean)
+    ratings2['rating_var'] = ratings2['user_id'].apply(lambda x: train_df_vars[x] if x in train_df_vars else train_df_total_var).fillna(0)
+    ratings2['rating_median'] = ratings2['user_id'].apply(lambda x: train_df_medians[x] if x in train_df_medians else train_df_total_median)
+    
+    if is_dl:
+        return users, books
+    return users, ratings1, ratings2

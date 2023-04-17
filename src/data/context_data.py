@@ -183,7 +183,7 @@ def context_data_load(args):
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                                 len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
-    users, books, context_train, context_test = rating_mean_feature(users, books, context_train, context_test)
+    users, context_train, context_test = rating_mean_feature(users, context_train, context_test)
 
     data = {
             'train':context_train,

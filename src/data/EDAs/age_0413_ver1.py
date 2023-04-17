@@ -18,7 +18,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def age_0413_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
+def age_0413_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame, is_dl : bool = False) -> tuple:
     """
     Parameters
     ----------
@@ -96,6 +96,9 @@ def age_0413_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.Data
     # location은 이제 필요 없음
     users = users.drop(['location'], axis=1)
     print('-'*20, 'Mission1 EDA Done', '-'*20)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 

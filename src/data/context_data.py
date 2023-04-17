@@ -24,7 +24,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def process_context_data(users, books, ratings1, ratings2): # default EDA
+def process_context_data(users, books, ratings1, ratings2, is_dl : bool = False): # default EDA
     """
     Parameters
     ----------
@@ -43,6 +43,9 @@ def process_context_data(users, books, ratings1, ratings2): # default EDA
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
@@ -107,8 +110,8 @@ def context_data_load(args):
     """
 
     ######################## DATA LOAD
-    users = pd.read_csv(args.data_path + 'users.csv')
-    books = pd.read_csv(args.data_path + 'books.csv')
+    users = pd.read_csv(args.users_data)
+    books = pd.read_csv(args.books_data)
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')

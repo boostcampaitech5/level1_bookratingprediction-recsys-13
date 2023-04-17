@@ -40,7 +40,7 @@ def main(args):
         
     elif args.model in ('catboost', 'lgbm', 'xgb', 'tabnet'):
         if args.k_fold == 1:
-            data = context_data_split(data)
+            data = context_data_split(args, data)
         else:
             data = stratified_kfold(args, data)
 

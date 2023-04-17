@@ -114,7 +114,6 @@ if __name__ == "__main__":
 
 
     ############### BASIC OPTION
-    arg('--data_path', type=str, default='/opt/ml/data/', help='Data path를 설정할 수 있습니다.')
     arg('--saved_model_path', type=str, default='./saved_models', help='Saved Model path를 설정할 수 있습니다.')
     arg('--model', type=str, choices=['FM', 'FFM', 'xgb', 'lgbm', 'catboost', 'tabnet', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
@@ -176,7 +175,7 @@ if __name__ == "__main__":
     arg('--FS', type=bool, default=False, help='변수 선택 단계를 거칠 것인지를 결정합니다.')
 
     ############### after eda file load
-    arg('--users_data', type=str, defalut = '/opt/ml/data/users.csv', help='Users data path를 설정할 수 있습니다.')
+    arg('--users_data', type=str, default='/opt/ml/data/users.csv', help='Users data path를 설정할 수 있습니다.')
     arg('--books_data', type=str, default= '/opt/ml/data/books.csv', help='Books data path를 설정할 수 있습니다.')
     arg('--data_path', type=str, default='/opt/ml/data/', help='default Data path를 설정할 수 있습니다.')
 

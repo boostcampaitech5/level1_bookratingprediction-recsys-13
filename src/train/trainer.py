@@ -1,5 +1,6 @@
 import os
-import tqdm
+# import tqdm
+from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
 from torch.nn import MSELoss
@@ -51,7 +52,7 @@ def train(args, model, dataloader, logger, setting):
     
     writer = SummaryWriter(log_dir=os.getcwd() + f'/log/{setting.save_time}_{args.model}', filename_suffix='tensorboard_logs') ###
 
-    for epoch in tqdm.tqdm(range(args.epochs)):
+    for epoch in tqdm(range(args.epochs)):
         model.train()
         total_loss = 0
         batch = 0
@@ -105,13 +106,15 @@ def gbdt_train(args, model, data, logger, setting):
         if args.k_fold == 1:
             evals = [(data['X_valid'],data['y_valid'])]
             cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
-            model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+            # model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+            model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=100)
             save_model_pkl(args, model, setting, 0)
         else:
             for i in  range(args.k_fold):
                 evals = [(data['X_valid'][i],data['y_valid'][i])]
                 cat_features = list(set(cat_features).intersection(list(data['X_train'][i].columns)))
-                model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+                # model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
+                model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=100)
                 save_model_pkl(args, model, setting, i)
     elif args.model == 'lgbm':
         if args.k_fold == 1:
@@ -174,7 +177,7 @@ def select_feature(args, model, data):
     features_copy = features.copy()
     model_copy = CatBoostRegressor(iterations=100, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
 
-    for i in tqdm.tqdm(range(len(features)), desc='selecting features...'):
+    for i in tqdm(range(len(features)), desc='selecting features...'):
         evals = [(X_valid[features_copy], y_valid)]
         if args.model == 'catboost':
             if args.eda == 'dohyun_0417_ver1':

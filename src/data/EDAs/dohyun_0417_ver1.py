@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 def age_map(x: int) -> int:
     x = int(x)

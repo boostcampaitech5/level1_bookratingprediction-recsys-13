@@ -24,7 +24,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def process_context_data(users, books, ratings1, ratings2): # default EDA
+def process_context_data(users, books, ratings1, ratings2, is_dl : bool = False): # default EDA
     """
     Parameters
     ----------
@@ -43,6 +43,9 @@ def process_context_data(users, books, ratings1, ratings2): # default EDA
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 

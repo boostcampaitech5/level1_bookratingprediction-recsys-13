@@ -7,8 +7,6 @@ def rating_mean_feature(users : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 
     ----------
     users : pd.DataFrame
         users.csv를 인덱싱한 데이터
-    books : pd.DataFrame
-        books.csv를 인덱싱한 데이터
     ratings1 : pd.DataFrame
         train 데이터의 rating
     ratings2 : pd.DataFrame

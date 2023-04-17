@@ -177,7 +177,10 @@ def select_feature(args, model, data):
     for i in tqdm.tqdm(range(len(features)), desc='selecting features...'):
         evals = [(X_valid[features_copy], y_valid)]
         if args.model == 'catboost':
-            cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
+            if args.eda == 'dohyun_0417_ver1':
+                cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map','location_city', 'location_state', 'location_country']
+            else:
+                cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
             model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
         elif args.model == 'lgbm':
@@ -201,7 +204,10 @@ def select_feature(args, model, data):
         temp_evals = [(X_valid[feature_list], y_valid)]
         
         if args.model == 'catboost':
-            temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
+            if args.eda == 'dohyun_0417_ver1':
+                temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','location_city','location_state','location_country','age_map']
+            else:
+                temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             temp_cat_features = list(set(temp_cat_features).intersection(list(X_train[feature_list].columns)))
             temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=300, cat_features=temp_cat_features, verbose=0)
         elif args.model == 'lgbm':

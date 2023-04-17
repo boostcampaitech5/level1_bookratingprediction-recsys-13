@@ -133,8 +133,6 @@ def context_data_load(args):
     test['isbn'] = test['isbn'].map(isbn2idx)
     books['isbn'] = books['isbn'].map(isbn2idx)
 
-    users, books, train, test = rating_mean_feature(users, books, train, test)
-
     if args.eda == 'default':
         idx, context_train, context_test = process_context_data(users, books, train, test)
     elif args.eda == 'mission1':
@@ -173,6 +171,8 @@ def context_data_load(args):
         field_dims = np.array([len(user2idx), len(isbn2idx),
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                                 len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    users, books, context_train, context_test = rating_mean_feature(users, books, context_train, context_test)
 
     data = {
             'train':context_train,

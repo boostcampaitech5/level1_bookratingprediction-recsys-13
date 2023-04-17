@@ -162,8 +162,11 @@ if __name__ == "__main__":
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
 
     ############### EDA Selection
-    arg('--eda', type=str, default='default', choices=['default', 'mission1', 'jisu', 
-                                                       'age_0413_ver1', 'age_0413_ver2', 'age_0413_ver4', 'category_0414_ver1', 
+    arg('--eda', type=str, default='default', choices=['default', 
+                                                       'mission1', 
+                                                       'jisu', 
+                                                       'age_0413_ver1', 'age_0413_ver2', 'age_0413_ver4', 
+                                                       'category_0414_ver1',
                                                        'dohyun_0415_ver1', 'dohyun_0415_ver4'], help='user와 books에 대한 전처리 방식을 선택할 수 있습니다.')
 
     ############### K-FOLD
@@ -172,7 +175,10 @@ if __name__ == "__main__":
     ############### Feature Selection
     arg('--FS', type=bool, default=False, help='변수 선택 단계를 거칠 것인지를 결정합니다.')
 
-
+    ############### after eda file load
+    arg('--users_data', type=str, defalut = '/opt/ml/data/users.csv', help='Users data path를 설정할 수 있습니다.')
+    arg('--books_data', type=str, default= '/opt/ml/data/books.csv', help='Books data path를 설정할 수 있습니다.')
+    arg('--data_path', type=str, default='/opt/ml/data/', help='default Data path를 설정할 수 있습니다.')
 
     args = parser.parse_args()
     main(args)

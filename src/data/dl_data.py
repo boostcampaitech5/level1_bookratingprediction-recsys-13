@@ -4,6 +4,10 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
+from . import process_context_data
+from .EDAs import mission_1_EDA, jisu_EDA_1
+from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
+from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
 
 def dl_data_load(args):
     """
@@ -16,8 +20,8 @@ def dl_data_load(args):
     """
 
     ######################## DATA LOAD
-    users = pd.read_csv(args.data_path + 'users.csv')
-    books = pd.read_csv(args.data_path + 'books.csv')
+    users = pd.read_csv(args.users_data)
+    books = pd.read_csv(args.books_data)
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
@@ -34,16 +38,58 @@ def dl_data_load(args):
     train['user_id'] = train['user_id'].map(user2idx)
     sub['user_id'] = sub['user_id'].map(user2idx)
     test['user_id'] = test['user_id'].map(user2idx)
+    users['user_id'] = users['user_id'].map(user2idx)
 
     train['isbn'] = train['isbn'].map(isbn2idx)
     sub['isbn'] = sub['isbn'].map(isbn2idx)
     test['isbn'] = test['isbn'].map(isbn2idx)
+    books['isbn'] = books['isbn'].map(isbn2idx)
 
-    field_dims = np.array([len(user2idx), len(isbn2idx)], dtype=np.uint32)
+    # EDA 방식 결정
+    if args.eda == 'default':
+        idx, context_train, context_test = process_context_data(users, books, train, test)
+    elif args.eda == 'mission1':
+        idx, context_train, context_test = mission_1_EDA(users, books, train, test)
+    elif args.eda == 'jisu':
+        idx, context_train, context_test = jisu_EDA_1(users, books, train, test)
+    elif args.eda == 'age_0413_ver1':
+        idx, context_train, context_test = age_0413_ver1(users, books, train, test)
+    elif args.eda == 'age_0413_ver2':
+        idx, context_train, context_test = age_0413_ver2(users, books, train, test)
+    elif args.eda == 'age_0413_ver4':
+        idx, context_train, context_test = age_0413_ver4(users, books, train, test)
+    elif args.eda == 'category_0414_ver1':
+        idx, context_train, context_test = category_0414_ver1(users, books, train, test)
+    elif args.eda == 'dohyun_0415_ver1':
+        idx, context_train, context_test = dohyun_0415_ver1(users, books, train, test)
+    elif args.eda == 'dohyun_0415_ver4':
+        idx, context_train, context_test = dohyun_0415_ver4(users, books, train, test)    
+
+    if args.eda == 'jisu':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    
+    elif args.eda == 'dohyun_0415_ver1':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    elif args.eda == 'dohyun_0415_ver4':
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    else:
+        field_dims = np.array([len(user2idx), len(isbn2idx),
+                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    # field_dims = np.array([len(user2idx), len(isbn2idx)], dtype=np.uint32)
 
     data = {
-            'train':train,
-            'test':test.drop(['rating'], axis=1),
+            'train':context_train,
+            'test':context_test.drop(['rating'], axis=1),
             'field_dims':field_dims,
             'users':users,
             'books':books,

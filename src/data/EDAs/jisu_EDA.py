@@ -26,7 +26,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def jisu_EDA_1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
+def jisu_EDA_1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame, is_dl : bool = False) -> tuple:
     print('-'*20, 'jisu1 EDA Start', '-'*20)
     # user preprocessing
     users['location'] = users['location'].str.replace(r'[^0-9a-zA-Z:,]', '') # 특수문자 제거
@@ -100,6 +100,9 @@ def jisu_EDA_1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFra
     # location은 이제 필요 없음
     users = users.drop(['location', 'location_state'], axis=1)
     print('-'*20, 'jisu1 EDA Start', '-'*20)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 

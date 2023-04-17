@@ -11,6 +11,11 @@ from torch.utils.data import DataLoader, Dataset
 from torch.autograd import Variable
 from transformers import BertModel, BertTokenizer
 
+from .context_data import process_context_data
+from .EDAs import mission_1_EDA, jisu_EDA_1
+from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
+from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
+
 
 def text_preprocessing(summary):
     """
@@ -215,8 +220,8 @@ def text_data_load(args):
             사전에 텍스트 데이터 벡터화에 대한 여부를 입력합니다.
     ----------
     """
-    users = pd.read_csv(args.data_path + 'users.csv')
-    books = pd.read_csv(args.data_path + 'books.csv')
+    users = pd.read_csv(args.users_data)
+    books = pd.read_csv(args.books_data)
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
@@ -235,12 +240,33 @@ def text_data_load(args):
     train['isbn'] = train['isbn'].map(isbn2idx)
     sub['isbn'] = sub['isbn'].map(isbn2idx)
 
+    is_dl = args.model in ('NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN')
+    
+    if args.eda == 'default':
+        users, books = process_context_data(users, books, train, test, is_dl)
+    elif args.eda == 'mission1':
+        users, books = mission_1_EDA(users, books, train, test, is_dl)
+    elif args.eda == 'jisu':
+        users, books = jisu_EDA_1(users, books, train, test, is_dl)
+    elif args.eda == 'age_0413_ver1':
+        users, books = age_0413_ver1(users, books, train, test, is_dl)
+    elif args.eda == 'age_0413_ver2':
+        users, books = age_0413_ver2(users, books, train, test, is_dl)
+    elif args.eda == 'age_0413_ver4':
+        users, books = age_0413_ver4(users, books, train, test, is_dl)
+    elif args.eda == 'category_0414_ver1':
+        users, books = category_0414_ver1(users, books, train, test, is_dl)
+    elif args.eda == 'dohyun_0415_ver1':
+        users, books = dohyun_0415_ver1(users, books, train, test, is_dl)
+    elif args.eda == 'dohyun_0415_ver4':
+        users, books = dohyun_0415_ver4(users, books, train, test, is_dl)
+
     text_train = process_text_data(train, books, user2idx, isbn2idx, args.device, train=True, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
     text_test = process_text_data(test, books, user2idx, isbn2idx, args.device, train=False, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
 
     data = {
-            'train':train,
-            'test':test,
+            'train': train,
+            'test': test,
             'users':users,
             'books':books,
             'sub':sub,

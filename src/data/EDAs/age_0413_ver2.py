@@ -18,7 +18,7 @@ def age_map(x: int) -> int:
     else:
         return 6
 
-def age_0413_ver2(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame) -> tuple:
+def age_0413_ver2(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, ratings2 : pd.DataFrame, is_dl : bool = False) -> tuple:
     """
     Parameters
     ----------
@@ -37,6 +37,9 @@ def age_0413_ver2(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.Data
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
+
+    if is_dl:
+        return users, books
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 

@@ -3,7 +3,7 @@ import tqdm
 import torch
 import torch.nn as nn
 from torch.nn import MSELoss
-from torch.optim import SGD, Adam
+from torch.optim import SGD, Adam, AdamW
 import pickle
 
 from sklearn.model_selection import StratifiedKFold
@@ -43,6 +43,9 @@ def train(args, model, dataloader, logger, setting):
         optimizer = SGD(model.parameters(), lr=args.lr)
     elif args.optimizer == 'ADAM':
         optimizer = Adam(model.parameters(), lr=args.lr)
+    elif args.optimizer == 'ADAMw':
+        optimizer = AdamW(model.parameters(), lr=args.lr)
+
     else:
         pass
     

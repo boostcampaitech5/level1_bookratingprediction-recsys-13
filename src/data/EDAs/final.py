@@ -110,9 +110,9 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     # age, year_of_publication mapping column -> feature로 적용
     train_df['age'] = train_df['age'].fillna(int(train_df['age'].median()))
-    train_df['age'] = train_df['age'].apply(age_map)
+    train_df['age_map'] = train_df['age'].apply(age_map)
     test_df['age'] = test_df['age'].fillna(int(test_df['age'].median()))
-    test_df['age'] = test_df['age'].apply(age_map)
+    test_df['age_map'] = test_df['age'].apply(age_map)
     train_df['year_of_publication_map'] = train_df['year_of_publication'].apply(year_of_publication_map)
     test_df['year_of_publication_map'] = test_df['year_of_publication'].apply(year_of_publication_map)
 
@@ -136,17 +136,20 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     publisher2idx = {v:k for k,v in enumerate(replace_na(context_df['publisher'].unique()))}
     language2idx = {v:k for k,v in enumerate(replace_na(context_df['language'].unique()))}
     author2idx = {v:k for k,v in enumerate(replace_na(context_df['book_author'].unique()))}
+    yopm2idx = {y:i for i, y in enumerate(range(1900, 2011, 10))}
 
     train_df['category'] = train_df['category'].map(category2idx)
     train_df['category_high'] = train_df['category_high'].map(categoryhigh2idx)
     train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
     train_df['book_author'] = train_df['book_author'].map(author2idx)
+    train_df['year_of_publication_map'] = train_df['year_of_publication_map'].map(yopm2idx)
     test_df['category'] = test_df['category'].map(category2idx)
     test_df['category_high'] = test_df['category_high'].map(categoryhigh2idx)
     test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
     test_df['book_author'] = test_df['book_author'].map(author2idx)
+    test_df['year_of_publication_map'] = test_df['year_of_publication_map'].map(yopm2idx)
 
     idx = {
         "loc_city2idx":loc_city2idx,
@@ -161,7 +164,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     ### Feature Engineering
 
     # user별 평점의 [평균, 중앙값, 분산, 표준편차] feature 추가
-    FE_user = context_df[['user_id', 'rating']].groupby('user_id').aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
+    FE_user = train_df[['user_id', 'rating']].groupby('user_id').aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
     FE_user = FE_user['rating'].rename(columns = {'mean':'mean_user', 'median':'median_user', 'var':'var_user', 'std':'std_user'})
     train_df = train_df.merge(FE_user, how = 'left', left_on='user_id', right_on = 'user_id')
     test_df = test_df.merge(FE_user, how = 'left', left_on='user_id', right_on = 'user_id')
@@ -175,8 +178,10 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     tmp_context_df.index = tmp_context_df.index.map(idx2category)
     tmp_context_high_df.index = tmp_context_high_df.index.map(idx2categoryhigh)
 
-    FE_category = tmp_context_df.loc[:,['category', 'rating']].groupby('category').aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
-    FE_category_high = tmp_context_high_df.loc[:,['category_high', 'rating']].groupby('category_high').aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
+    FE_category = tmp_context_df.loc[:,['category', 'rating']].groupby('category').aggregate([np.mean, np.median, np.var, np.std])
+    FE_category = FE_category.fillna(FE_category.mean())
+    FE_category_high = tmp_context_high_df.loc[:,['category_high', 'rating']].groupby('category_high').aggregate([np.mean, np.median, np.var, np.std])
+    FE_category_high = FE_category_high.fillna(FE_category_high.mean())
 
     for agg in ['mean', 'median', 'std']:
         train_df[f'category_{agg}'] = train_df['category'].map(FE_category.loc[:, 'rating'][agg])
@@ -185,15 +190,25 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
         test_df[f'category_high_{agg}'] = test_df['category_high'].map(FE_category_high.loc[:, 'rating'][agg])
 
     # category별 각 유저의 평점의 [평균, 중앙값, 분산, 표준편차] feature 추가
-    FE_user_category = tmp_context_df.loc[:,['user_id', 'category', 'rating']].groupby(['user_id', 'category']).aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
-    FE_user_category_high = tmp_context_df.loc[:,['user_id', 'category_high', 'rating']].groupby(['user_id', 'category_high']).aggregate([np.mean, np.median, np.var, np.std]).fillna(0)
+    FE_user_category = tmp_context_df.loc[:,['user_id', 'category', 'rating']].groupby(['user_id', 'category']).aggregate([np.mean, np.median, np.var, np.std])
+    FE_user_category = FE_user_category.fillna(FE_user_category.mean())
+    FE_user_category_high = tmp_context_df.loc[:,['user_id', 'category_high', 'rating']].groupby(['user_id', 'category_high']).aggregate([np.mean, np.median, np.var, np.std])
+    FE_user_category_high = FE_user_category_high.fillna(FE_user_category_high.mean())
 
     train_df = train_df.merge(FE_user_category['rating'], how = 'left', left_on=['user_id', 'category'], right_on = ['user_id', 'category'])\
                     .merge(FE_user_category_high['rating'], how = 'left', left_on=['user_id', 'category_high'], right_on = ['user_id', 'category_high'], suffixes=('_user_category', '_user_category_high'))
     test_df = test_df.merge(FE_user_category['rating'], how = 'left', left_on=['user_id', 'category'], right_on = ['user_id', 'category'])\
                     .merge(FE_user_category_high['rating'], how = 'left', left_on=['user_id', 'category_high'], right_on = ['user_id', 'category_high'], suffixes=('_user_category', '_user_category_high'))
 
-    del context_df, FE_user, tmp_context_df, tmp_context_high_df, FE_category, FE_category_high, FE_user_category, FE_user_category_high
+    # rating이 5이면 1 아니면 0
+    train_age_map_new_features = pd.get_dummies(train_df['age_map'], prefix='age_map')[['age_map_5']]
+    test_age_map_new_features = pd.get_dummies(test_df['age_map'], prefix='age_map')[['age_map_5']]
+    train_df = pd.concat([train_df, train_age_map_new_features], axis=1)
+    test_df = pd.concat([test_df, test_age_map_new_features], axis=1)
+
+    train_df['age_map_5'] = train_df['age_map_5'].map(lambda x : 1 if x else 0)
+    test_df['age_map_5'] = test_df['age_map_5'].map(lambda x : 1 if x else 0)
+    del context_df, FE_user, tmp_context_df, tmp_context_high_df, FE_category, FE_category_high, FE_user_category, FE_user_category_high, train_age_map_new_features, test_age_map_new_features
 
     print('-'*20, 'final EDA Done', '-'*20)
 

@@ -113,11 +113,15 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     train_df['age_map'] = train_df['age'].apply(age_map)
     test_df['age'] = test_df['age'].fillna(int(test_df['age'].median()))
     test_df['age_map'] = test_df['age'].apply(age_map)
-    train_df['year_of_publication_map'] = train_df['year_of_publication'].apply(year_of_publication_map)
-    test_df['year_of_publication_map'] = test_df['year_of_publication'].apply(year_of_publication_map)
 
     context_df = context_df.fillna('na') ; train_df = train_df.fillna('na') ; test_df = test_df.fillna('na')
+    
+    yop_na_idx = test_df[test_df['year_of_publication']=='na'].index[0]
+    test_df.loc[yop_na_idx,'year_of_publication'] = test_df.drop(index=yop_na_idx)['year_of_publication'].median()
 
+    train_df['year_of_publication_map'] = train_df['year_of_publication'].apply(year_of_publication_map)
+    test_df['year_of_publication_map'] = test_df['year_of_publication'].apply(year_of_publication_map)
+    
     # 인덱싱 처리
     loc_city2idx = {v:k for k,v in enumerate(replace_na(context_df['location_city'].unique()))}
     loc_state2idx = {v:k for k,v in enumerate(replace_na(context_df['location_state'].unique()))}
@@ -136,7 +140,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     publisher2idx = {v:k for k,v in enumerate(replace_na(context_df['publisher'].unique()))}
     language2idx = {v:k for k,v in enumerate(replace_na(context_df['language'].unique()))}
     author2idx = {v:k for k,v in enumerate(replace_na(context_df['book_author'].unique()))}
-    yopm2idx = {y:i for i, y in enumerate(range(1900, 2011, 10))}
+    yopm2idx = {y:i for i, y in enumerate(pd.concat([train_df['year_of_publication_map'], test_df['year_of_publication_map']]).unique())}
 
     train_df['category'] = train_df['category'].map(category2idx)
     train_df['category_high'] = train_df['category_high'].map(categoryhigh2idx)
@@ -160,6 +164,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
         "publisher2idx":publisher2idx,
         "language2idx":language2idx,
         "author2idx":author2idx,
+        "yopm2idx":yopm2idx
     }
     ### Feature Engineering
 

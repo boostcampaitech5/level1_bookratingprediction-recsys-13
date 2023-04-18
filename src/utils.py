@@ -45,12 +45,11 @@ def models_load(args, data):
     elif args.model=='catboost':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if torch.cuda.is_available():
-            model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
-            # model = CatBoostRegressor(iterations=60000, depth=8, learning_rate=0.0991405220731231, random_state=42, eval_metric='RMSE', task_type="GPU", bagging_temperature=0.1356293365096485, l2_leaf_reg=2.183798257058823, min_data_in_leaf= 52.0, random_strength= 8.652495079184156)
-            # model = CatBoostRegressor(iterations=60000, depth=8, learning_rate=0.0991405220731231, random_state=42, eval_metric='RMSE', task_type="GPU", bagging_temperature=0.1356293365096485, l2_leaf_reg=2.183798257058823, min_data_in_leaf= 52.0, random_strength= 8.652495079184156)
+            # model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
+            model = CatBoostRegressor(iterations=60000, depth=8, learning_rate=0.0991405220731231, random_state=42, eval_metric='RMSE', task_type="GPU", bagging_temperature=0.1356293365096485, l2_leaf_reg=2.183798257058823, min_data_in_leaf= 52.0, random_strength= 8.652495079184156)
         else:
-            model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn)
-            # model = CatBoostRegressor(iterations=60000, depth=8, learning_rate=0.0991405220731231, random_state=42, eval_metric='RMSE', bagging_temperature=0.1356293365096485, l2_leaf_reg=2.183798257058823, min_data_in_leaf= 52.0, random_strength= 8.652495079184156)
+            # model = CatBoostRegressor(iterations=args.epochs, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn)
+            model = CatBoostRegressor(iterations=60000, depth=8, learning_rate=0.0991405220731231, random_state=42, eval_metric='RMSE', bagging_temperature=0.1356293365096485, l2_leaf_reg=2.183798257058823, min_data_in_leaf= 52.0, random_strength= 8.652495079184156)
     elif args.model=='lgbm':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = LGBMRegressor(n_estimators=args.epochs, learning_rate=args.lr, random_state=args.seed)

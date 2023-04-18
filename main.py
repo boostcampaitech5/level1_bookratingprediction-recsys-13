@@ -1,6 +1,7 @@
 import time
 import argparse
 import pandas as pd
+import pickle
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -17,20 +18,32 @@ def main(args):
 
 
     ######################## DATA LOAD
-    print(f'--------------- {args.model} Load Data ---------------')
-    if args.model in ('FM', 'FFM', 'catboost', 'lgbm', 'xgb', 'tabnet'):
-        data = context_data_load(args)
-    elif args.model in ('NCF', 'WDN', 'DCN'):
-        data = dl_data_load(args)
-    elif args.model == 'CNN_FM':
-        data = image_data_load(args)
-    elif args.model == 'DeepCoNN':
-        import nltk
-        nltk.download('punkt')
-        data = text_data_load(args)
+    if not args.use_saved_data:
+        print(f'--------------- {args.model} Load Data ---------------')
+        if args.model in ('FM', 'FFM', 'catboost', 'lgbm', 'xgb', 'tabnet'):
+            data = context_data_load(args)
+        elif args.model in ('NCF', 'WDN', 'DCN'):
+            data = dl_data_load(args)
+        elif args.model == 'CNN_FM':
+            data = image_data_load(args)
+        elif args.model == 'DeepCoNN':
+            import nltk
+            nltk.download('punkt')
+            data = text_data_load(args)
+        else:
+            pass
+        
+        # 강제적으로 저장한다.
+        now = time.localtime()
+        now_date = time.strftime('%Y%m%d', now)
+        now_hour = time.strftime('%X', now)
+        save_time = now_date + '_' + now_hour.replace(':', '')
+        with open(f'{args.data_path}/{save_time}_{args.model}_data.pt',"wb") as f:
+            pickle.dump(data, f)
     else:
-        pass
-
+        # 저장 된 pickle 파일을 불러서 data에 넣는다.
+        with open(args.saved_data,"rb") as f:
+            data = pickle.load(f)
 
     ######################## Train/Valid Split
     print(f'--------------- {args.model} Train/Valid Split ---------------')
@@ -175,6 +188,8 @@ if __name__ == "__main__":
     arg('--users_data', type=str, default='/opt/ml/data/users.csv', help='Users data path를 설정할 수 있습니다.')
     arg('--books_data', type=str, default= '/opt/ml/data/books.csv', help='Books data path를 설정할 수 있습니다.')
     arg('--data_path', type=str, default='/opt/ml/data/', help='default Data path를 설정할 수 있습니다.')
+    arg('--use_saved_data', type=bool, default=False, help='EDA가 끝난 데이터를 사용할지 설정합니다.')
+    arg('--saved_data', type=str, default='/opt/ml/data/', help='EDA가 끝난 데이터 파일을 설정할 수 있습니다. (eg: /opt/ml/data/20230418_231549_catboost_data.pt)')
 
     args = parser.parse_args()
     main(args)

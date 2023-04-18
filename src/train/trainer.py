@@ -1,6 +1,6 @@
 import os
 # import tqdm
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 from torch.nn import MSELoss
@@ -175,7 +175,7 @@ def select_feature(args, model, data):
     feature_list = []
     experiment_result = pd.DataFrame({'features':['0']*len(features), 'len_features':['0']*len(features), 'rmse':np.zeros(len(features))})
     features_copy = features.copy()
-    model_copy = CatBoostRegressor(iterations=100, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
+    model_copy = CatBoostRegressor(iterations=5000, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
 
     for i in tqdm(range(len(features)), desc='selecting features...'):
         evals = [(X_valid[features_copy], y_valid)]
@@ -229,7 +229,7 @@ def select_feature(args, model, data):
     
     features_idx = input('SELECT Feature index : ')
     features_idx = float(features_idx)
-    
+
     features = []
     for x in experiment_result.loc[int(features_idx), 'features'].split("'"):
         if x not in ['[', ', ', ']']:

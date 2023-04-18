@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -38,14 +38,14 @@ def dohyun_0417_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.D
     modify_location = users[(users['location_country'].isna())&(users['location_city'].notnull())]['location_city'].values
 
     location_list = []
-    for location in tqdm(modify_location, desc='(1/4) fill country'):
+    for location in tqdm(modify_location, desc='(1/4) fill country', leave=True):
         try:
             right_location = users[(users['location'].str.contains(location))&(users['location_country'].notnull())]['location'].value_counts().index[0]
             location_list.append(right_location)
         except:
             pass
 
-    for location in tqdm(location_list, desc='(2/4) fill city'):
+    for location in tqdm(location_list, desc='(2/4) fill city', leave=True):
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_state'] = location.split(',')[1]
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_country'] = location.split(',')[2]
 
@@ -59,7 +59,7 @@ def dohyun_0417_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.D
 
     modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
 
-    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher'):
+    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher', leave=True):
         try:
             number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
             right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
@@ -77,7 +77,7 @@ def dohyun_0417_ver1(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.D
                   'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
                   'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
 
-    for category in tqdm(categories, desc = '(4/4) : high-categorizing'):
+    for category in tqdm(categories, desc = '(4/4) : high-categorizing', leave=True):
         books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
 
     # 10개 이하 항목 others로 묶기

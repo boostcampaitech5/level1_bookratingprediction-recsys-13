@@ -7,6 +7,7 @@ from torch.utils.data import TensorDataset, DataLoader, Dataset
 from .EDAs import mission_1_EDA, jisu_EDA_1
 from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
 from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4, dohyun_0417_ver1
+from .EDAs import rating_mean_feature
 from sklearn.model_selection import StratifiedKFold
 
 def age_map(x: int) -> int:
@@ -181,6 +182,8 @@ def context_data_load(args):
         field_dims = np.array([len(user2idx), len(isbn2idx),
                                 6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
                                 len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    users, context_train, context_test = rating_mean_feature(users, context_train, context_test)
 
     data = {
             'train':context_train,

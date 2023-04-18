@@ -75,7 +75,7 @@ def main(args):
     ######################## Select Feature
     if (args.model in ('catboost', 'lgbm')) & ((args.FS)):
         print(f'--------------- SELECT FEATURES ---------------')
-        data = select_feature(args, model, data)
+        select_feature(args, model, data)
 
     ######################## TRAIN
     print(f'--------------- {args.model} TRAINING ---------------')

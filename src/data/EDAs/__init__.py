@@ -9,3 +9,4 @@ from .dohyun_0415_ver1 import dohyun_0415_ver1
 from .dohyun_0415_ver4 import dohyun_0415_ver4
 from .dohyun_0417_ver1 import dohyun_0417_ver1
 from .rating_mean_feature import rating_mean_feature
+from .final import final

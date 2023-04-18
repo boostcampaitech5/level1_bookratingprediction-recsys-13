@@ -52,7 +52,7 @@ def train(args, model, dataloader, logger, setting):
     
     writer = SummaryWriter(log_dir=os.getcwd() + f'/log/{setting.save_time}_{args.model}', filename_suffix='tensorboard_logs') ###
 
-    for epoch in tqdm(range(args.epochs)):
+    for epoch in tqdm(range(args.epochs), ascii=True):
         model.train()
         total_loss = 0
         batch = 0
@@ -175,9 +175,10 @@ def select_feature(args, model, data):
     feature_list = []
     experiment_result = pd.DataFrame({'features':['0']*len(features), 'len_features':['0']*len(features), 'rmse':np.zeros(len(features))})
     features_copy = features.copy()
-    model_copy = CatBoostRegressor(iterations=5000, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
+    # model_copy = CatBoostRegressor(iterations=5000, learning_rate=args.lr, random_state=args.seed, eval_metric=args.loss_fn, task_type="GPU")
+    model_copy = CatBoostRegressor(iterations=2, learning_rate=1e-2, random_state=args.seed, eval_metric="RMSE", task_type="GPU")
 
-    for i in tqdm(range(len(features)), desc='selecting features...'):
+    for i in tqdm(range(len(features)), desc='selecting features...', ascii=True):
         evals = [(X_valid[features_copy], y_valid)]
         if args.model == 'catboost':
             if args.eda == 'dohyun_0417_ver1':
@@ -185,7 +186,7 @@ def select_feature(args, model, data):
             else:
                 cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
-            model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
+            model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=0)
         elif args.model == 'lgbm':
             model_copy.fit(X_train[features_copy], y_train, eval_metric=args.loss_fn, eval_set=evals, verbose=0)
     
@@ -212,7 +213,7 @@ def select_feature(args, model, data):
             else:
                 temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             temp_cat_features = list(set(temp_cat_features).intersection(list(X_train[feature_list].columns)))
-            temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=300, cat_features=temp_cat_features, verbose=0)
+            temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=1000, cat_features=temp_cat_features, verbose=0)
         elif args.model == 'lgbm':
             temp_model.fit(X_train[feature_list], y_train, eval_metric=args.loss_fn, eval_set=temp_evals, verbose=0)
         
@@ -221,32 +222,17 @@ def select_feature(args, model, data):
 
         experiment_result.loc[i, 'len_features'] = len(feature_list)
         experiment_result.loc[i, 'features'] = str(feature_list)
+        # features = []
+        # for x in experiment_result.loc[i, 'features'].split("'"):
+        #     if x not in ['[', ', ', ']']:
+        #         features.append(x)
+        # experiment_result.loc[i, 'features'] = features
+
         experiment_result.loc[i, 'rmse'] = RMSE
     
     experiment_result = experiment_result.sort_values('rmse').reset_index(drop=True)
-
-    print(experiment_result)
+    experiment_result.to_csv('feature_selection_result.csv', index=False)
     
-    features_idx = input('SELECT Feature index : ')
-    features_idx = float(features_idx)
-
-    features = []
-    for x in experiment_result.loc[int(features_idx), 'features'].split("'"):
-        if x not in ['[', ', ', ']']:
-            features.append(x)
-
-    print(f'{features} selected!')
-
-    data['X_train'] = data['X_train'][features]
-    data['X_valid'] = data['X_valid'][features]
-    data['test'] = data['test'][features]
-    tr = pd.concat([data['X_train'], pd.DataFrame({'rating':data['y_train']})], axis=1)
-    val = pd.concat([data['X_valid'], pd.DataFrame({'rating':data['y_valid']})], axis=1)
-    data['train'] = pd.concat([tr, val])
-    del tr, val
-    
-    return data
-
 def valid(args, model, dataloader, loss_fn):
     model.eval()
     total_loss = 0

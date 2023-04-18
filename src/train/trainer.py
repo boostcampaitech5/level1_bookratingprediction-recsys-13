@@ -99,7 +99,9 @@ def gbdt_train(args, model, data, logger, setting):
         elif args.eda == 'dohyun_0415_ver4':
             cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age','location_city', 'location_state', 'location_country']
         elif args.eda == 'dohyun_0417_ver1':
-            cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map','location_city', 'location_state', 'location_country']
+            cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map', 'location_city', 'location_state', 'location_country']
+        elif args.eda == 'final':
+            cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map', 'location_city', 'location_state', 'location_country', 'year_of_publication_map']
         else:
             cat_features = ['user_id', 'isbn', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country']
             
@@ -183,6 +185,8 @@ def select_feature(args, model, data):
         if args.model == 'catboost':
             if args.eda == 'dohyun_0417_ver1':
                 cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map','location_city', 'location_state', 'location_country']
+            elif args.eda == 'final':
+                cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map', 'location_city', 'location_state', 'location_country', 'year_of_publication_map']
             else:
                 cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
@@ -208,8 +212,10 @@ def select_feature(args, model, data):
         temp_evals = [(X_valid[feature_list], y_valid)]
         
         if args.model == 'catboost':
-            if args.eda == 'dohyun_0417_ver1':
+            if (args.eda == 'dohyun_0417_ver1'):
                 temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','location_city','location_state','location_country','age_map']
+            elif (args.eda == 'final'):
+                temp_cat_features = ['user_id', 'isbn', 'category', 'category_high', 'publisher', 'language', 'book_author','age_map', 'location_city', 'location_state', 'location_country', 'year_of_publication_map']
             else:
                 temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             temp_cat_features = list(set(temp_cat_features).intersection(list(X_train[feature_list].columns)))

@@ -45,7 +45,7 @@ def main(args):
         with open(args.saved_data,"rb") as f:
             data = pickle.load(f)
 
-    if args.select_feature != (9999):
+    if (args.select_feature != 9999) & (args.use_saved_data == True):
         select_fe = pd.read_csv('./feature_selection_result.csv')
         features = []
 

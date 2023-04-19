@@ -41,14 +41,14 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     modify_location = users[(users['location_country'].isna())&(users['location_city'].notnull())]['location_city'].values
 
     location_list = []
-    for location in tqdm(modify_location, desc='(1/4) fill country'):
+    for location in tqdm(modify_location, desc='(1/4) fill country', ascii=True):
         try:
             right_location = users[(users['location'].str.contains(location))&(users['location_country'].notnull())]['location'].value_counts().index[0]
             location_list.append(right_location)
         except:
             pass
 
-    for location in tqdm(location_list, desc='(2/4) fill city'):
+    for location in tqdm(location_list, desc='(2/4) fill city', ascii=True):
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_state'] = location.split(',')[1]
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_country'] = location.split(',')[2]
 
@@ -62,7 +62,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
 
-    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher'):
+    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher', ascii=True):
         try:
             number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
             right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
@@ -80,7 +80,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
                   'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
                   'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
 
-    for category in tqdm(categories, desc = '(4/4) : high-categorizing'):
+    for category in tqdm(categories, desc = '(4/4) : high-categorizing', ascii=True):
         books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
 
     # 10개 이하 항목 others로 묶기
@@ -121,7 +121,8 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     train_df['year_of_publication_map'] = train_df['year_of_publication'].apply(year_of_publication_map)
     test_df['year_of_publication_map'] = test_df['year_of_publication'].apply(year_of_publication_map)
-    
+    test_df['year_of_publication'] = test_df['year_of_publication'].astype(float)
+
     # 인덱싱 처리
     loc_city2idx = {v:k for k,v in enumerate(replace_na(context_df['location_city'].unique()))}
     loc_state2idx = {v:k for k,v in enumerate(replace_na(context_df['location_state'].unique()))}

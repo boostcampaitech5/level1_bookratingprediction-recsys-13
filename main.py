@@ -45,6 +45,20 @@ def main(args):
         with open(args.saved_data,"rb") as f:
             data = pickle.load(f)
 
+    if (args.select_feature != 9999) & (args.use_saved_data == True):
+        select_fe = pd.read_csv('./feature_selection_result.csv')
+        features = []
+
+        for x in select_fe.loc[args.select_feature, 'features'].split("'"):
+            if x not in ['[', ', ', ']']:
+                features.append(x)
+
+        drop_columns = ['category_mean', 'category_median', 'category_std', 'category_high_mean', 'category_high_median', 'category_high_std']
+        features = list(set(features) - set(drop_columns))
+        
+        data['train'] = data['train'][features + ['rating']]
+        data['test'] = data['test'][features]
+
     ######################## Train/Valid Split
     print(f'--------------- {args.model} Train/Valid Split ---------------')
     if args.model in ('FM', 'FFM'):
@@ -183,6 +197,7 @@ if __name__ == "__main__":
 
     ############### Feature Selection
     arg('--FS', type=bool, default=False, help='변수 선택 단계를 거칠 것인지를 결정합니다.')
+    arg('--select_feature', type=int, default=9999, help='변수 선택 결과에서 사용할 인덱스를 결정합니다. (0부터 시작)')
 
     ############### after eda file load
     arg('--users_data', type=str, default='/opt/ml/data/users.csv', help='Users data path를 설정할 수 있습니다.')

@@ -41,14 +41,14 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     modify_location = users[(users['location_country'].isna())&(users['location_city'].notnull())]['location_city'].values
 
     location_list = []
-    for location in tqdm(modify_location, desc='(1/4) fill country'):
+    for location in tqdm(modify_location, desc='(1/4) fill country', ascii=True):
         try:
             right_location = users[(users['location'].str.contains(location))&(users['location_country'].notnull())]['location'].value_counts().index[0]
             location_list.append(right_location)
         except:
             pass
 
-    for location in tqdm(location_list, desc='(2/4) fill city'):
+    for location in tqdm(location_list, desc='(2/4) fill city', ascii=True):
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_state'] = location.split(',')[1]
         users.loc[users[users['location_city']==location.split(',')[0]].index,'location_country'] = location.split(',')[2]
 
@@ -62,7 +62,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
 
-    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher'):
+    for publisher in tqdm(modify_list, desc = '(3/4) grouping same publisher', ascii=True):
         try:
             number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
             right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
@@ -80,7 +80,7 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
                   'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
                   'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
 
-    for category in tqdm(categories, desc = '(4/4) : high-categorizing'):
+    for category in tqdm(categories, desc = '(4/4) : high-categorizing', ascii=True):
         books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
 
     # 10개 이하 항목 others로 묶기
@@ -121,7 +121,8 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     train_df['year_of_publication_map'] = train_df['year_of_publication'].apply(year_of_publication_map)
     test_df['year_of_publication_map'] = test_df['year_of_publication'].apply(year_of_publication_map)
-    
+    test_df['year_of_publication'] = test_df['year_of_publication'].astype(float)
+
     # 인덱싱 처리
     loc_city2idx = {v:k for k,v in enumerate(replace_na(context_df['location_city'].unique()))}
     loc_state2idx = {v:k for k,v in enumerate(replace_na(context_df['location_state'].unique()))}
@@ -183,16 +184,16 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
     tmp_context_df.index = tmp_context_df.index.map(idx2category)
     tmp_context_high_df.index = tmp_context_high_df.index.map(idx2categoryhigh)
 
-    FE_category = tmp_context_df.loc[:,['category', 'rating']].groupby('category').aggregate([np.mean, np.median, np.var, np.std])
-    FE_category = FE_category.fillna(FE_category.mean())
-    FE_category_high = tmp_context_high_df.loc[:,['category_high', 'rating']].groupby('category_high').aggregate([np.mean, np.median, np.var, np.std])
-    FE_category_high = FE_category_high.fillna(FE_category_high.mean())
+    # FE_category = tmp_context_df.loc[:,['category', 'rating']].groupby('category').aggregate([np.mean, np.median, np.var, np.std])
+    # FE_category = FE_category.fillna(FE_category.mean())
+    # FE_category_high = tmp_context_high_df.loc[:,['category_high', 'rating']].groupby('category_high').aggregate([np.mean, np.median, np.var, np.std])
+    # FE_category_high = FE_category_high.fillna(FE_category_high.mean())
 
-    for agg in ['mean', 'median', 'std']:
-        train_df[f'category_{agg}'] = train_df['category'].map(FE_category.loc[:, 'rating'][agg])
-        test_df[f'category_{agg}'] = test_df['category'].map(FE_category.loc[:, 'rating'][agg])
-        train_df[f'category_high_{agg}'] = train_df['category_high'].map(FE_category_high.loc[:, 'rating'][agg])
-        test_df[f'category_high_{agg}'] = test_df['category_high'].map(FE_category_high.loc[:, 'rating'][agg])
+    # for agg in ['mean', 'median', 'std']:
+    #     train_df[f'category_{agg}'] = train_df['category'].map(FE_category.loc[:, 'rating'][agg])
+    #     test_df[f'category_{agg}'] = test_df['category'].map(FE_category.loc[:, 'rating'][agg])
+    #     train_df[f'category_high_{agg}'] = train_df['category_high'].map(FE_category_high.loc[:, 'rating'][agg])
+    #     test_df[f'category_high_{agg}'] = test_df['category_high'].map(FE_category_high.loc[:, 'rating'][agg])
 
     # category별 각 유저의 평점의 [평균, 중앙값, 분산, 표준편차] feature 추가
     FE_user_category = tmp_context_df.loc[:,['user_id', 'category', 'rating']].groupby(['user_id', 'category']).aggregate([np.mean, np.median, np.var, np.std])
@@ -213,8 +214,9 @@ def final(users : pd.DataFrame, books : pd.DataFrame, ratings1 : pd.DataFrame, r
 
     train_df['age_map_5'] = train_df['age_map_5'].map(lambda x : 1 if x else 0)
     test_df['age_map_5'] = test_df['age_map_5'].map(lambda x : 1 if x else 0)
-    del context_df, FE_user, tmp_context_df, tmp_context_high_df, FE_category, FE_category_high, FE_user_category, FE_user_category_high, train_age_map_new_features, test_age_map_new_features
-
+    # del context_df, FE_user, tmp_context_df, tmp_context_high_df, FE_category, FE_category_high, FE_user_category, FE_user_category_high, train_age_map_new_features, test_age_map_new_features
+    del context_df, FE_user, tmp_context_df, tmp_context_high_df, FE_user_category, FE_user_category_high, train_age_map_new_features, test_age_map_new_features
+    
     print('-'*20, 'final EDA Done', '-'*20)
 
     return idx, train_df, test_df

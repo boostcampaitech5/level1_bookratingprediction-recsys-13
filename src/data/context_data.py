@@ -161,33 +161,56 @@ def context_data_load(args):
     elif args.eda == 'final':
         idx, context_train, context_test = final(users, books, train, test)
 
-    if args.eda == 'jisu':
-        field_dims = np.array([len(user2idx), len(isbn2idx),
-                                6, len(idx['loc_city2idx']), len(idx['loc_country2idx']),
-                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-    
-    elif args.eda == 'dohyun_0415_ver1':
-        field_dims = np.array([len(user2idx), len(isbn2idx),
-                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                                len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-
-    elif args.eda in ['dohyun_0415_ver4', 'final']:  # TODO : 추후 final에 대해서 field_dim 처리해줘야함!
-        field_dims = np.array([len(user2idx), len(isbn2idx),
-                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                                len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-
-    elif args.eda == 'dohyun_0417_ver1':
-        field_dims = np.array([len(user2idx), len(isbn2idx),
-                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                                len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-
-
-    else:
-        field_dims = np.array([len(user2idx), len(isbn2idx),
-                                6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                                len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-
     users, context_train, context_test = rating_mean_feature(users, context_train, context_test)
+
+    if args.select_feature != 9999:
+        select_fe = pd.read_csv('/opt/ml/level1_bookratingprediction-recsys-13/feature_selection_result.csv')
+        features = []
+
+        for x in select_fe.loc[args.select_feature, 'features'].split("'"):
+            if x not in ['[', ', ', ']']:
+                features.append(x)
+
+        drop_columns = ['category_mean', 'category_median', 'category_std', 'category_high_mean', 'category_high_median', 'category_high_std']
+        features = list(set(features) - set(drop_columns))
+
+        context_train = context_train[features + ['rating']]
+        context_test = context_test[features + ['rating']]
+
+    context_df = pd.concat([context_train, context_test])
+    context_df = context_df.drop(columns='rating')
+
+    field_dims = []
+    for col in context_df.columns:
+        field_dims.append(context_df[col].nunique())
+
+    field_dims = np.array(field_dims)
+
+    # if args.eda == 'jisu':
+    #     field_dims = np.array([len(user2idx), len(isbn2idx),
+    #                             6, len(idx['loc_city2idx']), len(idx['loc_country2idx']),
+    #                             len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    
+    # elif args.eda == 'dohyun_0415_ver1':
+    #     field_dims = np.array([len(user2idx), len(isbn2idx),
+    #                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+    #                             len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    # elif args.eda in ['dohyun_0415_ver4', 'final']:  # TODO : 추후 final에 대해서 field_dim 처리해줘야함!
+    #     field_dims = np.array([len(user2idx), len(isbn2idx),
+    #                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+    #                             len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+    # elif args.eda == 'dohyun_0417_ver1':
+    #     field_dims = np.array([len(user2idx), len(isbn2idx),
+    #                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+    #                             len(idx['category2idx']), len(idx['categoryhigh2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+
+
+    # else:
+    #     field_dims = np.array([len(user2idx), len(isbn2idx),
+    #                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+    #                             len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {
             'train':context_train,

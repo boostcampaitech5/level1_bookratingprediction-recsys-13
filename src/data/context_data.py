@@ -163,6 +163,21 @@ def context_data_load(args):
 
     users, context_train, context_test = rating_mean_feature(users, context_train, context_test)
 
+    # reduced_columns = ['user_id', 'isbn', 'age', 'location_city', 'location_state',
+    #    'location_country', 'category', 'category_high', 'publisher',
+    #    'language', 'book_author', 'year_of_publication', 'age_map',
+    #    'year_of_publication_map', 'user_rating_var', 'age_map_5']
+
+    reduced_columns = ['user_id', 'isbn', 'age', 'location_city', 'location_state',
+       'location_country', 'category','publisher', 'book_author', 'year_of_publication', 'user_rating_var']
+
+
+    context_train = context_train[reduced_columns + ['rating']]
+    context_test = context_test[reduced_columns + ['rating']]
+
+    context_train['user_rating_var'] = context_train['user_rating_var'].replace(0, 1)
+    context_test['user_rating_var'] = context_test['user_rating_var'].replace(0, 1)
+
     if args.select_feature != 9999:
         select_fe = pd.read_csv('/opt/ml/level1_bookratingprediction-recsys-13/feature_selection_result.csv')
         features = []
@@ -248,6 +263,7 @@ def context_data_split(args, data):
                                                         random_state=args.seed,
                                                         shuffle=True
                                                         )
+    y_train = np.log1p(y_train) ; y_valid = np.log1p(y_valid)
     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
     
     # train 데이터와 validation 데이터의 인덱스 분할
@@ -268,9 +284,11 @@ def stratified_kfold(args, data):
     data['y_valid'] = []
     for train_index, valid_index in skf.split(data['train'].drop(['rating'], axis=1),data['train']['rating']):
         data['X_train'].append(data['train'].drop(['rating'], axis=1).loc[train_index])
-        data['y_train'].append(data['train']['rating'].loc[train_index])
+        # data['y_train'].append(data['train']['rating'].loc[train_index])
+        data['y_train'].append(np.log1p(data['train']['rating'].loc[train_index]))
         data['X_valid'].append(data['train'].drop(['rating'], axis=1).loc[valid_index])
-        data['y_valid'].append(data['train']['rating'].loc[valid_index])
+        # data['y_valid'].append(data['train']['rating'].loc[valid_index])
+        data['y_valid'].append(np.log1p(data['train']['rating'].loc[valid_index]))
         
     return data
 

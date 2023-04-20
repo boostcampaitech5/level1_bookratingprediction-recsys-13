@@ -109,14 +109,14 @@ def gbdt_train(args, model, data, logger, setting):
             evals = [(data['X_valid'],data['y_valid'])]
             cat_features = list(set(cat_features).intersection(list(data['X_train'].columns)))
             # model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
-            model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=100)
+            model.fit(data['X_train'], data['y_train'], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
             save_model_pkl(args, model, setting, 0)
         else:
             for i in  range(args.k_fold):
                 evals = [(data['X_valid'][i],data['y_valid'][i])]
                 cat_features = list(set(cat_features).intersection(list(data['X_train'][i].columns)))
                 # model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
-                model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=100)
+                model.fit(data['X_train'][i], data['y_train'][i], eval_set= evals, early_stopping_rounds=300, cat_features=cat_features, verbose=100)
                 save_model_pkl(args, model, setting, i)
     elif args.model == 'lgbm':
         if args.k_fold == 1:
@@ -190,7 +190,7 @@ def select_feature(args, model, data):
             else:
                 cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             cat_features = list(set(cat_features).intersection(list(X_train[features_copy].columns)))
-            model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=1000, cat_features=cat_features, verbose=0)
+            model_copy.fit(X_train[features_copy], y_train, eval_set=evals, early_stopping_rounds=300, cat_features=cat_features, verbose=0)
         elif args.model == 'lgbm':
             model_copy.fit(X_train[features_copy], y_train, eval_metric=args.loss_fn, eval_set=evals, verbose=0)
     
@@ -219,7 +219,7 @@ def select_feature(args, model, data):
             else:
                 temp_cat_features = ['user_id', 'isbn', 'category_high', 'category', 'publisher', 'language', 'book_author','age','location_city','location_state','location_country','age_map']
             temp_cat_features = list(set(temp_cat_features).intersection(list(X_train[feature_list].columns)))
-            temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=1000, cat_features=temp_cat_features, verbose=0)
+            temp_model.fit(X_train[feature_list], y_train, eval_set=temp_evals, early_stopping_rounds=300, cat_features=temp_cat_features, verbose=0)
         elif args.model == 'lgbm':
             temp_model.fit(X_train[feature_list], y_train, eval_metric=args.loss_fn, eval_set=temp_evals, verbose=0)
         

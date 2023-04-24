@@ -123,13 +123,6 @@ def dl_data_split(args, data):
                                                         )
     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
     
-    # train 데이터와 validation 데이터의 인덱스 분할
-    train_idx, valid_idx = train_test_split(data['train'].index, test_size=args.test_size, random_state=args.seed, shuffle=True)
-
-    # train 데이터와 validation 데이터의 인덱스를 각각 CSV 파일로 저장
-    os.makedirs('./data_index', exist_ok=True)
-    data['train'].loc[train_idx].to_csv(f'./data_index/dl_data_train_index.csv', index=False)
-    data['train'].loc[valid_idx].to_csv(f'./data_index/dl_data_valid_index.csv', index=False)
     return data
 
 def dl_data_loader(args, data):

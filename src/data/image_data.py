@@ -9,9 +9,7 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 from .context_data import process_context_data
-from .EDAs import mission_1_EDA, jisu_EDA_1
-from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
-from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
+from .Preprocess import preprocess
 import os
 
 

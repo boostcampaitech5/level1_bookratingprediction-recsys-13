@@ -5,9 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
 from . import process_context_data
-from .EDAs import mission_1_EDA, jisu_EDA_1
-from .EDAs import age_0413_ver1, age_0413_ver2, age_0413_ver4, category_0414_ver1
-from .EDAs import dohyun_0415_ver1, dohyun_0415_ver4
+from .Preprocess import preprocess
 import os
 
 def dl_data_load(args):
@@ -50,21 +48,21 @@ def dl_data_load(args):
     if args.eda == 'default':
         idx, context_train, context_test = process_context_data(users, books, train, test)
     elif args.eda == 'mission1':
-        idx, context_train, context_test = mission_1_EDA(users, books, train, test)
+        idx, context_train, context_test = preprocess.mission_1_EDA(users, books, train, test)
     elif args.eda == 'jisu':
-        idx, context_train, context_test = jisu_EDA_1(users, books, train, test)
+        idx, context_train, context_test = preprocess.jisu_EDA_1(users, books, train, test)
     elif args.eda == 'age_0413_ver1':
-        idx, context_train, context_test = age_0413_ver1(users, books, train, test)
+        idx, context_train, context_test = preprocess.age_0413_ver1(users, books, train, test)
     elif args.eda == 'age_0413_ver2':
-        idx, context_train, context_test = age_0413_ver2(users, books, train, test)
+        idx, context_train, context_test = preprocess.age_0413_ver2(users, books, train, test)
     elif args.eda == 'age_0413_ver4':
-        idx, context_train, context_test = age_0413_ver4(users, books, train, test)
+        idx, context_train, context_test = preprocess.age_0413_ver4(users, books, train, test)
     elif args.eda == 'category_0414_ver1':
-        idx, context_train, context_test = category_0414_ver1(users, books, train, test)
+        idx, context_train, context_test = preprocess.category_0414_ver1(users, books, train, test)
     elif args.eda == 'dohyun_0415_ver1':
-        idx, context_train, context_test = dohyun_0415_ver1(users, books, train, test)
+        idx, context_train, context_test = preprocess.dohyun_0415_ver1(users, books, train, test)
     elif args.eda == 'dohyun_0415_ver4':
-        idx, context_train, context_test = dohyun_0415_ver4(users, books, train, test)    
+        idx, context_train, context_test = preprocess.dohyun_0415_ver4(users, books, train, test)    
 
     if args.eda == 'jisu':
         field_dims = np.array([len(user2idx), len(isbn2idx),

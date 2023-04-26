@@ -111,6 +111,10 @@
             
           ![image](https://user-images.githubusercontent.com/72483874/233929089-d2060ab6-f15a-46d5-9c60-2fab3ac6559d.png)
           ![image](https://user-images.githubusercontent.com/72483874/233929238-706896c5-5cd2-42b9-ad34-0f32294332d0.png)
-
+<h3>
+  <p align="center">
+    <a href="WrapUpReport-Recsys13.pdf">[📑 Wrap Up Report]</a>
+  </p>
+</h3>
 
             
